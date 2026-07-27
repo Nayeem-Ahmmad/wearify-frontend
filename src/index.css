@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  display: inline-flex;
+  animation: marquee 22s linear infinite;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 2.5s infinite;
+}
