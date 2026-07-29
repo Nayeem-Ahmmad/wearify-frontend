@@ -1,105 +1,124 @@
-import { FiFacebook, FiInstagram, FiTwitter, FiMapPin, FiPhone, FiMail } from 'react-icons/fi'
+import { FiFacebook, FiInstagram, FiTwitter, FiMapPin, FiPhone, FiMail, FiArrowRight } from 'react-icons/fi'
 import Logo from './Logo'
 
+const footerColumns = [
+    {
+        title: 'Shop',
+        links: [
+            { label: "Men's Clothing", href: '/categories/men' },
+            { label: "Women's Clothing", href: '/categories/women' },
+            { label: 'Shoes', href: '/categories/shoes' },
+            { label: 'Accessories', href: '/categories/accessories' },
+            { label: 'Watches', href: '/categories/watches' },
+        ],
+    },
+    {
+        title: 'Customer Service',
+        links: [
+            { label: 'Help Center', href: '/help' },
+            { label: 'Track Order', href: '/track-order' },
+            { label: 'Returns & Refunds', href: '#', comingSoon: true },
+            { label: 'Shipping Info', href: '/shipping-info' },
+            { label: 'FAQs', href: '/faq' },
+        ],
+    },
+    {
+        title: 'Company',
+        links: [
+            { label: 'About Us', href: '/about' },
+            { label: 'Careers', href: '/careers', comingSoon: true },
+            { label: 'Privacy Policy', href: '/privacy-policy' },
+            { label: 'Terms & Conditions', href: '/terms' },
+            { label: 'Contact Us', href: '/contact' },
+        ],
+    },
+]
+
 const Footer = () => {
-  return (
-    <footer className="bg-slate-950 text-slate-300">
-      <div className="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-6 gap-8">
-        <div className="md:col-span-2">
-          <Logo dark />
-          <p className="text-sm text-slate-400 mt-3">
-            Your one-stop destination for fashion, shoes, accessories and everything you need.
-          </p>
-          <div className="flex gap-3 mt-4">
-            <a href="#" className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center hover:bg-blue-600 hover:scale-110 transition-all duration-300">
-              <FiFacebook size={16} />
-            </a>
-            <a href="#" className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center hover:bg-blue-600 hover:scale-110 transition-all duration-300">
-              <FiInstagram size={16} />
-            </a>
-            <a href="#" className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center hover:bg-blue-600 hover:scale-110 transition-all duration-300">
-              <FiTwitter size={16} />
-            </a>
-          </div>
-        </div>
+    return (
+        <footer className="bg-slate-950 text-slate-400">
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-blue-600/40 to-transparent" />
 
-        <div>
-          <p className="font-semibold text-white mb-3 text-sm">Shop</p>
-          <ul className="space-y-2 text-sm">
-            <li><a href="/categories/men" className="hover:text-white transition-colors duration-300">Men's Clothing</a></li>
-            <li><a href="/categories/women" className="hover:text-white transition-colors duration-300">Women's Clothing</a></li>
-            <li><a href="/categories/shoes" className="hover:text-white transition-colors duration-300">Shoes</a></li>
-            <li><a href="/categories/accessories" className="hover:text-white transition-colors duration-300">Accessories</a></li>
-            <li><a href="/categories/watches" className="hover:text-white transition-colors duration-300">Watches</a></li>
-          </ul>
-        </div>
+            <div className="max-w-7xl mx-auto px-4 py-14">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+                    <div>
+                        <Logo dark />
+                        <p className="text-sm mt-4 leading-relaxed">
+                            Your one-stop destination for fashion, shoes, accessories and everything you need to wear your style.
+                        </p>
 
-        <div>
-          <p className="font-semibold text-white mb-3 text-sm">Customer Service</p>
-          <ul className="space-y-2 text-sm">
-            <li><a href="/help" className="hover:text-white transition-colors duration-300">Help Center</a></li>
-            <li><a href="/track-order" className="hover:text-white transition-colors duration-300">Track Order</a></li>
-            <li className="relative group cursor-pointer hover:text-white transition-colors duration-300">
-              Returns &amp; Refunds
-              <span className="ml-1.5 text-[9px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded-full">Coming Soon</span>
-            </li>
-            <li><a href="/shipping-info" className="hover:text-white transition-colors duration-300">Shipping Info</a></li>
-            <li><a href="/faq" className="hover:text-white transition-colors duration-300">FAQs</a></li>
-          </ul>
-        </div>
+                        <div className="mt-6 space-y-3 text-sm">
+                            <a href="mailto:wearify.sells@gmail.com" className="flex items-center gap-2.5 hover:text-white transition-colors duration-300">
+                                <FiMail size={15} className="text-blue-400" />
+                                wearify.sells@gmail.com
+                            </a>
+                            <a href="tel:+8801581270371" className="flex items-center gap-2.5 hover:text-white transition-colors duration-300">
+                                <FiPhone size={15} className="text-blue-400" />
+                                +880 1581-270371
+                            </a>
+                            <div className="flex items-center gap-2.5">
+                                <FiMapPin size={15} className="text-blue-400 shrink-0" />
+                                Gulshan, Dhaka, Bangladesh
+                            </div>
+                        </div>
 
-        <div>
-          <p className="font-semibold text-white mb-3 text-sm">Company</p>
-          <ul className="space-y-2 text-sm">
-            <li><a href="/about" className="hover:text-white transition-colors duration-300">About Us</a></li>
-            <li><a href="/careers" className="hover:text-white transition-colors duration-300">Careers</a></li>
-            <li><a href="/privacy-policy" className="hover:text-white transition-colors duration-300">Privacy Policy</a></li>
-            <li><a href="/terms" className="hover:text-white transition-colors duration-300">Terms &amp; Conditions</a></li>
-            <li><a href="/contact" className="hover:text-white transition-colors duration-300">Contact Us</a></li>
-          </ul>
-        </div>
+                        <div className="flex gap-3 mt-6">
+                            <a href="#" className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-gradient-to-r hover:from-blue-600 hover:to-white-600 hover:scale-110 transition-all duration-300">
+                                <FiFacebook size={15} />
+                            </a>
+                            <a href="#" className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-gradient-to-r hover:from-blue-600 hover:to-white-600 hover:scale-110 transition-all duration-300">
+                                <FiInstagram size={15} />
+                            </a>
+                            <a href="#" className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-gradient-to-r hover:from-blue-600 hover:to-white-600 hover:scale-110 transition-all duration-300">
+                                <FiTwitter size={15} />
+                            </a>
+                        </div>
+                    </div>
 
-        <div>
-          <p className="font-semibold text-white mb-3 text-sm">Contact Us</p>
-          <ul className="space-y-3 text-sm">
-            <li className="flex items-start gap-2">
-              <FiMapPin size={15} className="mt-0.5 text-blue-400 shrink-0" />
-              <span>Gulshan, Dhaka, Bangladesh</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <FiPhone size={15} className="text-blue-400 shrink-0" />
-              <a href="tel:+8801581270371" className="hover:text-white transition-colors duration-300">
-                +880 1581-270371
-              </a>
-            </li>
-            <li className="flex items-center gap-2">
-              <FiMail size={15} className="text-blue-400 shrink-0" />
-              <a href="mailto:wearify.sells@gmail.com" className="hover:text-white transition-colors duration-300">
-                wearify.sells@gmail.com
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
+                    {footerColumns.map((col) => (
+                        <div key={col.title}>
+                            <p className="font-semibold text-white mb-5 text-sm tracking-wide">{col.title}</p>
+                            <ul className="space-y-3 text-sm">
+                                {col.links.map((link) => (
+                                    <li key={link.label}>
+                                        <a
+                                            href={link.href}
+                                            className="group inline-flex items-center gap-1.5 hover:text-white transition-colors duration-300"
+                                        >
+                                            <FiArrowRight size={11} className="opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-blue-400" />
+                                            {link.label}
+                                            {link.comingSoon && (
+                                                <span className="text-[9px] bg-orange-500/15 text-orange-400 px-1.5 py-0.5 rounded-full">
+                                                    Soon
+                                                </span>
+                                            )}
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
+                </div>
+            </div>
 
-      <div className="border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <p>© 2026 Wearify. All rights reserved.</p>
-          <div className="flex gap-3 items-center">
-            <span>We Accept:</span>
-            {['VISA', 'MASTERCARD', 'AMEX', 'bKash', 'Nagad'].map((p) => (
-              <span
-                key={p}
-                className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 hover:text-white transition-all duration-300"
-              >
-                {p}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-    </footer>
-  )
+            <div className="border-t border-white/5">
+                <div className="max-w-7xl mx-auto px-4 py-5 flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
+                    <p>© 2026 Wearify. All rights reserved.</p>
+                    <div className="flex gap-2 items-center">
+                        <span className="mr-1">We Accept:</span>
+                        {['VISA', 'Mastercard', 'bKash', 'Nagad'].map((p) => (
+                            <span
+                                key={p}
+                                className="px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 hover:text-white transition-all duration-300"
+                            >
+                                {p}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </footer>
+    )
 }
 
 export default Footer

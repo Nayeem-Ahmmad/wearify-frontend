@@ -26,7 +26,7 @@ const Home = () => {
       <PromoBanners />
       <BestSellers />
       <NewArrivals />
-      <BrandPartners />
+      {/* <BrandPartners /> */}
       <Testimonials />
       <Newsletter />
       <Footer />

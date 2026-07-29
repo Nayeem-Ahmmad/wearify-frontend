@@ -97,8 +97,8 @@ const Hero = () => {
                 alt={slide.title}
                 animate={{ y: [0, -14, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                className="w-full max-w-md rounded-3xl object-cover shadow-2xl"
-              />
+                className="w-full max-w-md h-[420px] rounded-3xl object-cover shadow-2xl"
+              />  
               <motion.div
                 initial={{ rotate: -8, scale: 0.8, opacity: 0 }}
                 animate={{ rotate: -8, scale: 1, opacity: 1 }}

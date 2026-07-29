@@ -1,13 +1,8 @@
 import { useEffect, useState } from 'react'
 import { FiZap } from 'react-icons/fi'
 import ProductCard from './ProductCard'
-
-const flashProducts = [
-  { id: 1, name: 'Smart Watch Series 9', price: 199, oldPrice: 249, discount: 20, rating: 4.5, reviews: 120, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&q=80' },
-  { id: 2, name: 'Noise Cancelling Headphone', price: 59, oldPrice: 69, discount: 15, rating: 4.3, reviews: 96, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&q=80' },
-  { id: 3, name: 'Running Shoes Pro', price: 74, oldPrice: 99, discount: 25, rating: 4.6, reviews: 64, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=80' },
-  { id: 4, name: 'DSLR Camera', price: 449, oldPrice: 499, discount: 10, rating: 4.4, reviews: 75, image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=300&q=80' },
-]
+import ProductGridSkeleton from './ProductGridSkeleton'
+import { getProducts } from '../api/products'
 
 const getTimeLeft = () => {
   const end = new Date()
@@ -23,10 +18,19 @@ const getTimeLeft = () => {
 
 const FlashSale = () => {
   const [time, setTime] = useState(getTimeLeft())
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const timer = setInterval(() => setTime(getTimeLeft()), 1000)
     return () => clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    getProducts({ page_size: 4 })
+      .then((data) => setProducts(data.results || data))
+      .catch(() => setProducts([]))
+      .finally(() => setLoading(false))
   }, [])
 
   const units = [
@@ -56,18 +60,19 @@ const FlashSale = () => {
               ))}
             </div>
 
-            
-              href="/deals"
-              className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors duration-300"
-            >
-              View All Deals →
+            <a href="/deals" className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors duration-300">
+              View All Deals
             </a>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {flashProducts.map((p) => (
-              <ProductCard key={p.id} product={p} dark />
-            ))}
+            {loading ? (
+              <ProductGridSkeleton count={4} />
+            ) : products.length === 0 ? (
+              <p className="col-span-full text-sm text-slate-400">No products available yet.</p>
+            ) : (
+              products.map((p) => <ProductCard key={p.id} product={p} dark />)
+            )}
           </div>
         </div>
       </div>

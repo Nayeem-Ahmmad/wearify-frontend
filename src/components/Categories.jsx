@@ -19,9 +19,9 @@ const Categories = () => {
 
       <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
         {categories.map((cat) => (
-          
+          <a
             key={cat.name}
-            href={`/categories/${cat.name}`}
+            href={`/categories/${encodeURIComponent(cat.name)}`}
             className="group flex flex-col items-center rounded-2xl border border-slate-100 p-3 hover:border-blue-200 hover:shadow-lg transition-all duration-300"
           >
             <div className="w-full aspect-square rounded-xl overflow-hidden mb-2">

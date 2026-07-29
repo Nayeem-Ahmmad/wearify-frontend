@@ -27,7 +27,7 @@ const PromoBanners = () => {
     <section className="max-w-7xl mx-auto px-4 py-6">
       <div className="grid md:grid-cols-3 gap-4">
         {banners.map((b) => (
-          
+          <a
             key={b.title}
             href={b.href}
             className={`relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br ${b.gradient} hover:shadow-xl transition-all duration-500 group`}
