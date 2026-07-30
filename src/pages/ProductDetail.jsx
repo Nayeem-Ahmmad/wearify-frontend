@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
+
 import {
   FiHeart, FiShoppingCart, FiChevronRight, FiCheck, FiZoomIn, FiX,
   FiTruck, FiRefreshCw, FiShield, FiChevronDown,
@@ -15,7 +16,6 @@ import { useToast } from '../components/Toast'
 import { getProduct, getRelatedProducts } from '../api/products'
 import { getReviews } from '../api/reviews'
 import { getProductImages, formatPrice } from '../utils/productHelpers'
-
 import { useCart } from '../context/CartContext'
 
 const trustBadges = [
@@ -102,6 +102,22 @@ const ProductDetail = () => {
       setTimeout(() => setFlyAnim(false), 700)
     } catch {
       showToast('Please login to add items to cart')
+    }
+  }
+
+  const navigate = useNavigate()
+  const [buyNowLoading, setBuyNowLoading] = useState(false)
+
+  const handleBuyNow = async () => {
+    if (!selectedVariant) return
+    setBuyNowLoading(true)
+    try {
+      await addItem(selectedVariant.id, quantity)
+      navigate('/checkout')
+    } catch {
+      showToast('Please login to buy this product')
+    } finally {
+      setBuyNowLoading(false)
     }
   }
 
@@ -373,10 +389,14 @@ const ProductDetail = () => {
               </button>
 
               <button
-                disabled={!inStock}
-                className="flex-1 py-3.5 rounded-full font-medium border-2 border-blue-600 text-blue-600 hover:bg-blue-50 active:scale-95 transition-all duration-300 disabled:opacity-50"
+                onClick={handleBuyNow}
+                disabled={!inStock || buyNowLoading}
+                className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-full font-medium border-2 border-blue-600 text-blue-600 hover:bg-blue-50 active:scale-95 transition-all duration-300 disabled:opacity-50"
               >
-                Buy Now
+                {buyNowLoading && (
+                  <span className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                )}
+                {buyNowLoading ? 'Processing...' : 'Buy Now'}
               </button>
 
               <button
