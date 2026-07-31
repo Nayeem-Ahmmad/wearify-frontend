@@ -12,6 +12,8 @@ import { useToast } from '../components/Toast'
 import { getAddresses, createAddress } from '../api/addresses'
 import { createOrder, initiatePayment } from '../api/orders'
 import { formatPrice } from '../utils/productHelpers'
+import { useAuth } from '../context/AuthContext'
+import { applyCoupon } from '../api/orders'
 
 const STEPS = [
   { label: 'Cart', icon: FiShoppingBag },
@@ -29,6 +31,8 @@ const PAYMENT_OPTIONS = [
 
 const Checkout = () => {
   const { cart, fetchCart } = useCart()
+  const [couponCode, setCouponCode] = useState('')
+  const { user } = useAuth()
   const { showToast } = useToast()
   const navigate = useNavigate()
 
@@ -62,6 +66,16 @@ const Checkout = () => {
       })
       .catch(() => setShowNewAddressForm(true))
   }, [])
+
+  useEffect(() => {
+    if (user) {
+      setNewAddress((prev) => ({
+        ...prev,
+        full_name: prev.full_name || user.user?.username || '',
+        phone: prev.phone || user.phone || '',
+      }))
+    }
+  }, [user])
 
   const triggerError = (message) => {
     setError(message)
@@ -101,6 +115,15 @@ const Checkout = () => {
       const address = await resolveAddress()
       const order = await createOrder(address.id)
       setLastOrderId(order.id)
+
+      if (couponCode.trim()) {
+        try {
+          const result = await applyCoupon(order.id, couponCode.trim())
+          showToast(result.success || 'Coupon applied')
+        } catch (couponErr) {
+          showToast(`Coupon failed: ${couponErr.response?.data?.error || 'Invalid or expired code'}`)
+        }
+      }
 
       if (paymentMethod === 'cod') {
         await fetchCart()
@@ -311,6 +334,18 @@ const Checkout = () => {
                 ))}
               </div>
             </div>
+              {/* Coupon section */}
+            <section>
+            <label className="text-sm font-semibold text-slate-800 mb-2 block">Coupon Code (optional)</label>
+            <input
+              type="text"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value)}
+              placeholder="Enter coupon code"
+              className="w-full border rounded px-3 py-2 transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
+            <p className="text-xs text-slate-400 mt-1">Applied automatically when you place the order.</p>
+          </section>
 
             <label className="flex items-start gap-2.5 px-1">
               <input

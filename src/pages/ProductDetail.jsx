@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-
 import {
   FiHeart, FiShoppingCart, FiChevronRight, FiCheck, FiZoomIn, FiX,
   FiTruck, FiRefreshCw, FiShield, FiChevronDown,
@@ -16,7 +15,9 @@ import { useToast } from '../components/Toast'
 import { getProduct, getRelatedProducts } from '../api/products'
 import { getReviews } from '../api/reviews'
 import { getProductImages, formatPrice } from '../utils/productHelpers'
+
 import { useCart } from '../context/CartContext'
+import { useWishlist } from '../context/WishlistContext'
 
 const trustBadges = [
   { icon: FiShield, label: 'Secure Payment' },
@@ -42,7 +43,6 @@ const ProductDetail = () => {
   const [selectedVariant, setSelectedVariant] = useState(null)
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
-  const [wishlisted, setWishlisted] = useState(false)
   const [added, setAdded] = useState(false)
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
   const [isZooming, setIsZooming] = useState(false)
@@ -51,8 +51,11 @@ const ProductDetail = () => {
   const [openAccordion, setOpenAccordion] = useState(0)
   const [showSticky, setShowSticky] = useState(false)
   const [flyAnim, setFlyAnim] = useState(false)
+  const [buyNowLoading, setBuyNowLoading] = useState(false)
   const cartBtnRef = useRef(null)
   const { addItem } = useCart()
+  const { isWishlisted, toggleWishlist } = useWishlist()
+  const navigate = useNavigate()
 
   useEffect(() => {
     setLoading(true)
@@ -78,7 +81,7 @@ const ProductDetail = () => {
       const list = data.results || data
       setReviewCount(list.length)
       setAvgRating(list.length ? list.reduce((s, r) => s + r.rating, 0) / list.length : 0)
-    }).catch(() => {})
+    }).catch(() => { })
   }, [product])
 
   useEffect(() => {
@@ -105,9 +108,6 @@ const ProductDetail = () => {
     }
   }
 
-  const navigate = useNavigate()
-  const [buyNowLoading, setBuyNowLoading] = useState(false)
-
   const handleBuyNow = async () => {
     if (!selectedVariant) return
     setBuyNowLoading(true)
@@ -118,6 +118,14 @@ const ProductDetail = () => {
       showToast('Please login to buy this product')
     } finally {
       setBuyNowLoading(false)
+    }
+  }
+
+  const handleWishlistToggle = async () => {
+    try {
+      await toggleWishlist(product.id)
+    } catch {
+      showToast('Please login to use wishlist')
     }
   }
 
@@ -164,6 +172,10 @@ const ProductDetail = () => {
 
   const images = getProductImages(product)
   const price = selectedVariant ? selectedVariant.price : product.base_price
+ const hasDiscount = selectedVariant?.price_override != null && Number(selectedVariant.price_override) !== Number(product.base_price)
+  const discountPercent = hasDiscount
+    ? Math.round((1 - Number(selectedVariant.price_override) / Number(product.base_price)) * 100)
+    : 0
   const stock = selectedVariant ? selectedVariant.stock_quantity : null
   const inStock = stock === null || stock > 0
 
@@ -180,10 +192,10 @@ const ProductDetail = () => {
       <Navbar />
 
       <button
-        onClick={() => setWishlisted(!wishlisted)}
+        onClick={handleWishlistToggle}
         className="fixed right-4 md:right-6 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white shadow-lg border border-slate-100 flex items-center justify-center hover:scale-125 transition-all duration-300"
       >
-        <FiHeart size={20} className={wishlisted ? 'fill-red-500 text-red-500' : 'text-slate-400'} />
+        <FiHeart size={20} className={isWishlisted(product.id) ? 'fill-red-500 text-red-500' : 'text-slate-400'} />
       </button>
 
       <div className="max-w-6xl mx-auto px-4 py-4">
@@ -230,9 +242,8 @@ const ProductDetail = () => {
                   <button
                     key={i}
                     onClick={() => setSelectedImage(i)}
-                    className={`w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all duration-300 ${
-                      i === selectedImage ? 'border-blue-600' : 'border-transparent hover:border-slate-300'
-                    }`}
+                    className={`w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all duration-300 ${i === selectedImage ? 'border-blue-600' : 'border-transparent hover:border-slate-300'
+                      }`}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
                   </button>
@@ -264,16 +275,20 @@ const ProductDetail = () => {
               >
                 {reviewCount} reviews
               </button>
-              {/* {selectedVariant?.sku && (
-                <>
-                  <span className="text-slate-300">|</span>
-                  <span className="text-slate-400">SKU: {selectedVariant.sku}</span>
-                </>
-              )} */}
             </div>
 
-            <div className="flex items-baseline gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-4 flex-wrap">
               <span className="text-2xl font-bold text-blue-600">{formatPrice(price)}</span>
+              {hasDiscount && (
+                <>
+                    <span className="text-base font-medium text-orange-500 line-through decoration-1 decoration-red-700">
+                    {formatPrice(product.base_price)}
+                  </span>
+                  <span className="text-xs font-bold text-white bg-red-500 px-2 py-1 rounded-full">
+                    Save {discountPercent}%
+                  </span>
+                </>
+              )}
             </div>
 
             {stock !== null && (
@@ -308,11 +323,10 @@ const ProductDetail = () => {
                         )
                         setSelectedVariant(match || product.variants.find((v) => v.size === size))
                       }}
-                      className={`min-w-[44px] h-11 px-3 rounded-lg border text-sm font-medium transition-all duration-300 hover:scale-105 ${
-                        selectedVariant?.size === size
-                          ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200'
-                          : 'border-slate-200 text-slate-700 hover:border-slate-400'
-                      }`}
+                      className={`min-w-[44px] h-11 px-3 rounded-lg border text-sm font-medium transition-all duration-300 hover:scale-105 ${selectedVariant?.size === size
+                        ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200'
+                        : 'border-slate-200 text-slate-700 hover:border-slate-400'
+                        }`}
                     >
                       {size}
                     </button>
@@ -334,11 +348,10 @@ const ProductDetail = () => {
                         )
                         setSelectedVariant(match || product.variants.find((v) => v.color === color))
                       }}
-                      className={`px-4 h-11 rounded-lg border text-sm font-medium transition-all duration-300 hover:scale-105 ${
-                        selectedVariant?.color === color
-                          ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200'
-                          : 'border-slate-200 text-slate-700 hover:border-slate-400'
-                      }`}
+                      className={`px-4 h-11 rounded-lg border text-sm font-medium transition-all duration-300 hover:scale-105 ${selectedVariant?.color === color
+                        ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200'
+                        : 'border-slate-200 text-slate-700 hover:border-slate-400'
+                        }`}
                     >
                       {color}
                     </button>
@@ -372,11 +385,10 @@ const ProductDetail = () => {
               <button
                 onClick={handleAddToCart}
                 disabled={!inStock}
-                className={`relative flex-1 flex items-center justify-center gap-2 py-3.5 rounded-full font-medium transition-all duration-300 overflow-hidden ${
-                  added
-                    ? 'bg-green-500 text-white'
-                    : 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02] active:scale-95'
-                } disabled:opacity-50 disabled:hover:scale-100`}
+                className={`relative flex-1 flex items-center justify-center gap-2 py-3.5 rounded-full font-medium transition-all duration-300 overflow-hidden ${added
+                  ? 'bg-green-500 text-white'
+                  : 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02] active:scale-95'
+                  } disabled:opacity-50 disabled:hover:scale-100`}
               >
                 {added ? <FiCheck size={18} /> : <FiShoppingCart size={18} />}
                 {added ? 'Added to Cart' : 'Add to Cart'}
@@ -400,12 +412,12 @@ const ProductDetail = () => {
               </button>
 
               <button
-                onClick={() => setWishlisted(!wishlisted)}
+                onClick={handleWishlistToggle}
                 className="w-14 h-14 rounded-full border border-slate-200 flex items-center justify-center hover:border-red-300 transition-all duration-300 shrink-0"
               >
                 <FiHeart
                   size={20}
-                  className={`transition-all duration-300 ${wishlisted ? 'fill-red-500 text-red-500 scale-110' : 'text-slate-400'}`}
+                  className={`transition-all duration-300 ${isWishlisted(product.id) ? 'fill-red-500 text-red-500 scale-110' : 'text-slate-400'}`}
                 />
               </button>
             </div>
@@ -436,9 +448,8 @@ const ProductDetail = () => {
                     />
                   </button>
                   <div
-                    className={`overflow-hidden transition-all duration-300 ${
-                      openAccordion === i ? 'max-h-24' : 'max-h-0'
-                    }`}
+                    className={`overflow-hidden transition-all duration-300 ${openAccordion === i ? 'max-h-24' : 'max-h-0'
+                      }`}
                   >
                     <p className="px-4 pb-3 text-xs text-slate-500">{item.desc}</p>
                   </div>
@@ -454,9 +465,8 @@ const ProductDetail = () => {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`relative pb-3 text-sm font-medium capitalize transition-colors duration-300 ${
-                  activeTab === tab ? 'text-blue-600' : 'text-slate-500 hover:text-slate-700'
-                }`}
+                className={`relative pb-3 text-sm font-medium capitalize transition-colors duration-300 ${activeTab === tab ? 'text-blue-600' : 'text-slate-500 hover:text-slate-700'
+                  }`}
               >
                 {tab === 'reviews' ? `Reviews (${reviewCount})` : tab}
                 {activeTab === tab && (

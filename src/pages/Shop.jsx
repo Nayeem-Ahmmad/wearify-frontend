@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+
 import { FiFilter, FiX, FiChevronDown } from 'react-icons/fi'
 import TopBar from '../components/TopBar'
 import Navbar from '../components/Navbar'
@@ -14,12 +16,13 @@ const Shop = () => {
   const [showFilters, setShowFilters] = useState(false)
   const [count, setCount] = useState(0)
   const [page, setPage] = useState(1)
+  const [searchParams] = useSearchParams()
   const [filters, setFilters] = useState({
-    category: '',
+    category: searchParams.get('category') || '',
     brand: '',
     min_price: '',
     max_price: '',
-    search: '',
+    search: searchParams.get('search') || '',
     ordering: '',
   })
 

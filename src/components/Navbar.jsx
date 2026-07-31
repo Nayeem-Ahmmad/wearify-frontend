@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { FiSearch, FiHeart, FiShoppingCart, FiUser, FiMenu, FiChevronDown } from 'react-icons/fi'
 import Logo from './Logo'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
+import { getProducts } from '../api/products'
+import { useWishlist } from '../context/WishlistContext'
+import { getProductImage, getProductPrice, formatPrice } from '../utils/productHelpers'
 
 const navLinks = [
     { label: 'Home', href: '/' },
@@ -17,15 +20,53 @@ const navLinks = [
 const Navbar = () => {
     const { authenticated, user, logout } = useAuth()
     const [scrolled, setScrolled] = useState(false)
-    const [wishlistCount] = useState(3)
     const [bump, setBump] = useState(false)
     const { cartCount } = useCart()
+
+    const [searchQuery, setSearchQuery] = useState('')
+    const [suggestions, setSuggestions] = useState([])
+    const [showSuggestions, setShowSuggestions] = useState(false)
+    const [searching, setSearching] = useState(false)
+    const searchRef = useRef(null)
+    const { count: wishlistCount } = useWishlist()
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 10)
         window.addEventListener('scroll', onScroll)
         return () => window.removeEventListener('scroll', onScroll)
     }, [])
+
+    useEffect(() => {
+        if (!searchQuery.trim()) {
+            setSuggestions([])
+            return
+        }
+        setSearching(true)
+        const timer = setTimeout(() => {
+            getProducts({ search: searchQuery.trim(), page_size: 5 })
+                .then((data) => setSuggestions(data.results || data))
+                .catch(() => setSuggestions([]))
+                .finally(() => setSearching(false))
+        }, 350)
+        return () => clearTimeout(timer)
+    }, [searchQuery])
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (searchRef.current && !searchRef.current.contains(e.target)) {
+                setShowSuggestions(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault()
+        if (!searchQuery.trim()) return
+        setShowSuggestions(false)
+        window.location.href = `/shop?search=${encodeURIComponent(searchQuery.trim())}`
+    }
 
     const headerClass = scrolled
         ? 'bg-white/80 backdrop-blur-md shadow-md'
@@ -37,18 +78,63 @@ const Navbar = () => {
                 <Logo />
 
                 <div className="hidden md:flex flex-1 items-center">
-                    <div className="flex w-full max-w-xl items-center rounded-full border border-slate-200 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100 transition-all duration-300">
-                        <button className="flex items-center gap-1 px-4 py-2 text-sm text-slate-600 border-r border-slate-200">
-                            All Categories <FiChevronDown size={14} />
-                        </button>
-                        <input
-                            type="text"
-                            placeholder="Search for products, brands and more..."
-                            className="flex-1 px-4 py-2 text-sm outline-none bg-transparent"
-                        />
-                        <button className="p-2 mr-1 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-300">
-                            <FiSearch size={18} />
-                        </button>
+                    <div ref={searchRef} className="relative w-full max-w-xl">
+                        <form
+                            onSubmit={handleSearchSubmit}
+                            className="flex w-full items-center rounded-full border border-slate-200 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100 transition-all duration-300"
+                        >
+                            <button type="button" className="flex items-center gap-1 px-4 py-2 text-sm text-slate-600 border-r border-slate-200">
+                                All Categories <FiChevronDown size={14} />
+                            </button>
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onFocus={() => setShowSuggestions(true)}
+                                placeholder="Search for products, brands and more..."
+                                className="flex-1 px-4 py-2 text-sm outline-none bg-transparent"
+                            />
+                            <button type="submit" className="p-2 mr-1 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-300">
+                                <FiSearch size={18} />
+                            </button>
+                        </form>
+
+                        {showSuggestions && searchQuery.trim() && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 animate-fade-in">
+                                {searching ? (
+                                    <div className="px-4 py-6 text-center text-sm text-slate-400">Searching...</div>
+                                ) : suggestions.length === 0 ? (
+                                    <div className="px-4 py-6 text-center text-sm text-slate-400">No products found</div>
+                                ) : (
+                                    <>
+                                        {suggestions.map((p) => (
+                                            <a
+                                                key={p.id}
+                                                href={`/products/${p.slug}`}
+                                                className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors duration-200"
+                                            >
+                                                <img
+                                                    src={getProductImage(p)}
+                                                    alt={p.name}
+                                                    className="w-10 h-10 rounded-lg object-cover shrink-0"
+                                                />
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-sm text-slate-800 truncate">{p.name}</p>
+                                                    <p className="text-xs text-blue-600 font-medium">{formatPrice(getProductPrice(p))}</p>
+                                                </div>
+                                            </a>
+                                        ))}
+
+                                        <a
+                                            href={`/shop?search=${encodeURIComponent(searchQuery.trim())}`}
+                                            className="block px-4 py-2.5 text-sm font-medium text-blue-600 hover:bg-slate-50 text-center border-t border-slate-100 mt-1"
+                                        >
+                                            View all results for "{searchQuery.trim()}"
+                                        </a>
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 

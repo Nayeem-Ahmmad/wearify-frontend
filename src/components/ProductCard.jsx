@@ -1,13 +1,15 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { FiHeart, FiShoppingCart } from 'react-icons/fi'
 import { getProductImage, getProductPrice, formatPrice } from '../utils/productHelpers'
 import { useCart } from '../context/CartContext'
+import { useWishlist } from '../context/WishlistContext'
 import { useToast } from './Toast'
 
 const ProductCard = ({ product, dark = false, badge }) => {
   const { addItem } = useCart()
+  const { isWishlisted, toggleWishlist } = useWishlist()
   const { showToast } = useToast()
-  const [wishlisted, setWishlisted] = useState(false)
   const [added, setAdded] = useState(false)
 
   const handleAddToCart = async (e) => {
@@ -27,14 +29,27 @@ const ProductCard = ({ product, dark = false, badge }) => {
     }
   }
 
+  const handleWishlistToggle = async (e) => {
+    e.preventDefault()
+    try {
+      await toggleWishlist(product.id)
+    } catch {
+      showToast('Please login to use wishlist')
+    }
+  }
+
   const image = getProductImage(product)
   const price = getProductPrice(product)
+ const variant = product.variants?.[0]
+  const hasDiscount = variant?.price_override != null && Number(variant.price_override) !== Number(product.base_price)
+  const discountPercent = hasDiscount
+    ? Math.round((1 - Number(variant.price_override) / Number(product.base_price)) * 100)
+    : 0
 
   return (
-    <a
-      href={`/products/${product.slug}`}
-      className={`group relative block min-w-0 rounded-2xl overflow-hidden border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'
-        }`}
+    <Link
+      to={`/products/${product.slug}`}
+      className={`group relative block min-w-0 rounded-2xl overflow-hidden border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}
     >
       {badge && (
         <span className="absolute top-3 left-3 z-10 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-full">
@@ -43,12 +58,13 @@ const ProductCard = ({ product, dark = false, badge }) => {
       )}
 
       <button
-        onClick={(e) => { e.preventDefault(); setWishlisted(!wishlisted) }}
+        type="button"
+        onClick={handleWishlistToggle}
         className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center hover:scale-110 transition-transform duration-300"
       >
         <FiHeart
           size={16}
-          className={`transition-all duration-300 ${wishlisted ? 'fill-red-500 text-red-500 scale-110' : 'text-slate-600'}`}
+          className={`transition-all duration-300 ${isWishlisted(product.id) ? 'fill-red-500 text-red-500 scale-110' : 'text-slate-600'}`}
         />
       </button>
 
@@ -65,22 +81,32 @@ const ProductCard = ({ product, dark = false, badge }) => {
           {product.name}
         </p>
 
-        <div className="flex items-center gap-2 mt-1.5">
+        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
           <span className={`font-bold ${dark ? 'text-white' : 'text-slate-900'}`}>
             {formatPrice(price)}
           </span>
+          {hasDiscount && (
+            <>
+              <span className={`text-xs font-medium line-through decoration-1 decoration-orange-400 text-orange-500`}>
+                {formatPrice(product.base_price)}
+              </span>
+              <span className="text-[10px] font-bold text-white bg-red-500 px-1.5 py-0.5 rounded-full">
+                -{discountPercent}%
+              </span>
+            </>
+          )}
         </div>
 
         <button
+          type="button"
           onClick={handleAddToCart}
-          className={`mt-3 w-full flex items-center justify-center gap-1.5 text-xs font-medium py-2 rounded-full transition-all duration-300 ${added ? 'bg-green-500 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
+          className={`mt-3 w-full flex items-center justify-center gap-1.5 text-xs font-medium py-2 rounded-full transition-all duration-300 ${added ? 'bg-green-500 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
         >
           <FiShoppingCart size={14} />
           {added ? 'Added!' : 'Add to Cart'}
         </button>
       </div>
-    </a>
+    </Link>
   )
 }
 

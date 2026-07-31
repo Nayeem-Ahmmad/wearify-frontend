@@ -1,13 +1,36 @@
-const categories = [
-  { name: "Men's Clothing", count: 120, image: 'https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?w=300&q=80' },
-  { name: "Women's Clothing", count: 98, image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=300&q=80' },
-  { name: 'Shoes', count: 85, image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=300&q=80' },
-  { name: 'Bags & Backpacks', count: 60, image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&q=80' },
-  { name: 'Watches', count: 45, image: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=300&q=80' },
-  { name: 'Accessories', count: 75, image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=300&q=80' },
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { FiArrowRight } from 'react-icons/fi'
+import { getCategories } from '../api/products'
+import { API_BASE_URL } from '../api/axios'
+
+const gradients = [
+  'from-blue-500 to-indigo-600',
+  'from-purple-500 to-pink-600',
+  'from-emerald-500 to-teal-600',
+  'from-orange-500 to-red-600',
+  'from-cyan-500 to-blue-600',
+  'from-fuchsia-500 to-purple-600',
 ]
 
+const getCategoryImage = (cat) => {
+  if (!cat.image) return null
+  return cat.image.startsWith('http') ? cat.image : `${API_BASE_URL}${cat.image}`
+}
+
 const Categories = () => {
+  const [categories, setCategories] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getCategories()
+      .then((data) => setCategories((data.results || data).slice(0, 6)))
+      .catch(() => setCategories([]))
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (!loading && categories.length === 0) return null
+
   return (
     <section className="max-w-7xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-5">
@@ -18,25 +41,42 @@ const Categories = () => {
       </div>
 
       <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
-        {categories.map((cat) => (
-          <a
-            key={cat.name}
-            href={`/categories/${encodeURIComponent(cat.name)}`}
-            className="group flex flex-col items-center rounded-2xl border border-slate-100 p-3 hover:border-blue-200 hover:shadow-lg transition-all duration-300"
-          >
-            <div className="w-full aspect-square rounded-xl overflow-hidden mb-2">
-              <img
-                src={cat.image}
-                alt={cat.name}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              />
-            </div>
-            <p className="text-xs font-medium text-slate-800 text-center">{cat.name}</p>
-            <p className="text-[10px] text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              {cat.count} Items
-            </p>
-          </a>
-        ))}
+        {loading
+          ? Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="aspect-[4/5] rounded-2xl bg-slate-100 animate-pulse" />
+          ))
+          : categories.map((cat, idx) => {
+            const image = getCategoryImage(cat)
+            return (
+              <Link
+                key={cat.id}
+                to={`/shop?category=${cat.slug}`}
+                className="group relative overflow-hidden rounded-2xl aspect-[4/5] hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              >
+                {image ? (
+                  <img
+                    src={image}
+                    alt={cat.name}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className={`absolute inset-0 bg-gradient-to-br ${gradients[idx % gradients.length]}`} />
+                )}
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+
+                <div className="absolute inset-x-0 bottom-0 p-3">
+                  <p className="text-white text-xs font-semibold leading-tight">{cat.name}</p>
+                  {typeof cat.product_count === 'number' && (
+                    <p className="text-white/70 text-[10px] mt-0.5">{cat.product_count} Items</p>
+                  )}
+                  <div className="flex items-center gap-1 text-[10px] font-medium text-white mt-1.5 max-h-0 opacity-0 group-hover:max-h-6 group-hover:opacity-100 transition-all duration-300">
+                    Shop Now <FiArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform duration-300" />
+                  </div>
+                </div>
+              </Link>
+            )
+          })}
       </div>
     </section>
   )

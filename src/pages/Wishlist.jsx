@@ -1,74 +1,83 @@
+import { motion, AnimatePresence } from 'framer-motion'
+import { Link } from 'react-router-dom'
+import { FiHeart, FiShoppingBag } from 'react-icons/fi'
 import TopBar from '../components/TopBar'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import ProductCard from '../components/ProductCard'
 import { useWishlist } from '../context/WishlistContext'
-import { FiHeart } from 'react-icons/fi'
 
 const Wishlist = () => {
     const { items, loading } = useWishlist()
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-white">
-                <TopBar />
-                <Navbar />
-                <div className="max-w-6xl mx-auto px-4 py-16 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 animate-pulse">
-                    {Array.from({ length: 8 }).map((_, i) => (
-                        <div key={i} className="h-60 bg-slate-100 rounded-2xl" />
-                    ))}
-                </div>
-                <Footer />
-            </div>
-        )
-    }
-
-    if (!items || items.length === 0) {
-        return (
-            <div className="min-h-screen bg-white">
-                <TopBar />
-                <Navbar />
-                <div className="max-w-lg mx-auto px-4 py-24 text-center">
-                    <div className="w-24 h-24 rounded-full bg-pink-50 flex items-center justify-center mx-auto mb-6">
-                        <FiHeart size={40} className="text-pink-500" />
-                    </div>
-                    <h1 className="text-xl font-bold text-slate-900 mb-2">Your Wishlist is Empty</h1>
-                    <p className="text-sm text-slate-500 mb-8">Save products you love to view or buy later.</p>
-
-                    <a
-                        href="/shop"
-                        className="inline-flex items-center gap-2 bg-pink-600 text-white px-7 py-3 rounded-full font-medium hover:bg-pink-700 hover:scale-105 transition-all duration-300"
-                    >
-                        Browse Products
-                    </a>
-                </div>
-                <Footer />
-            </div>
-        )
-    }
-
     return (
-        <div className="min-h-screen bg-white pb-24 md:pb-4">
+        <div className="min-h-screen bg-white">
             <TopBar />
             <Navbar />
 
-            <div className="max-w-6xl mx-auto px-4 py-8">
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-900">Your Wishlist</h1>
-                        <p className="text-sm text-slate-500 mt-1">{items.length} item{items.length !== 1 ? 's' : ''} saved</p>
-                    </div>
-                    <a href="/shop" className="hidden sm:flex items-center gap-1 text-sm font-medium text-pink-600 hover:underline">
-                        Continue Shopping
-                    </a>
+            <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-14">
+                <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_15%_20%,_#2563EB_0%,_transparent_45%),radial-gradient(circle_at_85%_80%,_#9333EA_0%,_transparent_45%)]" />
+                <div className="relative max-w-7xl mx-auto px-4">
+                    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+                        <span className="inline-block text-xs font-semibold tracking-widest text-blue-600 mb-2">
+                            SAVED FOR LATER
+                        </span>
+                        <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2">My Wishlist</h1>
+                        <p className="text-slate-500">{items.length} item{items.length !== 1 ? 's' : ''} saved</p>
+                    </motion.div>
                 </div>
+            </section>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {items.map((w) => (
-                        <ProductCard key={w.id} product={w.product} />
-                    ))}
-                </div>
-            </div>
+            <section className="max-w-7xl mx-auto px-4 py-10">
+                {loading ? (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="rounded-2xl overflow-hidden border border-slate-100 animate-pulse">
+                                <div className="aspect-square bg-slate-200" />
+                                <div className="p-3 space-y-2">
+                                    <div className="h-3 bg-slate-200 rounded w-3/4" />
+                                    <div className="h-3 bg-slate-200 rounded w-1/3" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : items.length === 0 ? (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="text-center py-16 rounded-3xl border border-slate-100 bg-gradient-to-b from-slate-50 to-white"
+                    >
+                        <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center mb-5">
+                            <FiHeart className="text-blue-500" size={32} />
+                        </div>
+                        <p className="text-slate-700 font-semibold text-lg">Your wishlist is empty</p>
+                        <p className="text-sm text-slate-400 mt-1 mb-6">Save products you love and find them here anytime</p>
+
+                        <Link
+                            to="/shop"
+                            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full text-sm font-medium hover:shadow-lg hover:shadow-blue-200 hover:scale-105 transition-all duration-300"
+                        >
+                            <FiShoppingBag size={15} /> Start Shopping
+                        </Link>
+                    </motion.div>
+                ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <AnimatePresence>
+                            {items.map((item, idx) => (
+                                <motion.div
+                                    key={item.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    transition={{ delay: idx * 0.05 }}
+                                >
+                                    <ProductCard product={item.product} />
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </div>
+                )}
+            </section>
 
             <Footer />
         </div>

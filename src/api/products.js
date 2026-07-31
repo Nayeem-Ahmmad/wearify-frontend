@@ -24,3 +24,8 @@ export const getBrands = async () => {
   const response = await api.get('/shop/brands/')
   return response.data
 }
+
+export const getDeals = async (params = {}) => {
+  const response = await api.get('/shop/products/deals/', { params })
+  return response.data
+}
