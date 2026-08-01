@@ -29,3 +29,8 @@ export const getDeals = async (params = {}) => {
   const response = await api.get('/shop/products/deals/', { params })
   return response.data
 }
+
+export const getActiveFlashSale = async () => {
+  const response = await api.get('/shop/flash-sale/active/')
+  return response.data
+}

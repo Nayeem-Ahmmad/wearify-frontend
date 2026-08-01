@@ -40,8 +40,8 @@ const ProductCard = ({ product, dark = false, badge }) => {
 
   const image = getProductImage(product)
   const price = getProductPrice(product)
- const variant = product.variants?.[0]
-  const hasDiscount = variant?.price_override != null && Number(variant.price_override) !== Number(product.base_price)
+  const variant = product.variants?.[0]
+  const hasDiscount = variant?.is_on_sale === true
   const discountPercent = hasDiscount
     ? Math.round((1 - Number(variant.price_override) / Number(product.base_price)) * 100)
     : 0

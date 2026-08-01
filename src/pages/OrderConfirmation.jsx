@@ -125,11 +125,10 @@ const OrderConfirmation = () => {
                         <div key={stage.key} className="flex items-center flex-1 last:flex-none">
                           <div className="flex flex-col items-center shrink-0">
                             <div
-                              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
-                                reached
+                              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${reached
                                   ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-md shadow-blue-200'
                                   : 'bg-slate-100 text-slate-400'
-                              }`}
+                                }`}
                             >
                               <Icon size={15} />
                             </div>
@@ -170,6 +169,12 @@ const OrderConfirmation = () => {
                     </div>
                   ))}
                 </div>
+                {Number(order.shipping_cost) > 0 && (
+                  <div className="flex justify-between text-sm text-slate-500 mb-2">
+                    <span>Shipping</span>
+                    <span>{formatPrice(order.shipping_cost)}</span>
+                  </div>
+                )}
                 <div className="border-t border-slate-100 pt-4 flex justify-between items-baseline">
                   <span className="font-semibold text-slate-900">Total</span>
                   <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">

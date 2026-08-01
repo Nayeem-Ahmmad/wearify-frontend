@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   FiMapPin, FiCreditCard, FiCheckCircle, FiShoppingBag,
   FiTruck, FiShield, FiRotateCcw, FiAward, FiPlus, FiUser, FiPhone,
@@ -24,8 +24,8 @@ const STEPS = [
 
 const PAYMENT_OPTIONS = [
   { value: 'cod', label: 'Cash on Delivery', hint: 'Pay when your order arrives', accent: 'text-slate-700' },
-  { value: 'bkash', label: 'bKash', hint: 'Pay securely via bKash', accent: 'text-pink-600' },
-  { value: 'nagad', label: 'Nagad', hint: 'Pay securely via Nagad', accent: 'text-orange-600' },
+  // { value: 'bkash', label: 'bKash', hint: 'Pay securely via bKash', accent: 'text-pink-600' },
+  // { value: 'nagad', label: 'Nagad', hint: 'Pay securely via Nagad', accent: 'text-orange-600' },
   { value: 'card', label: 'Card / SSLCommerz', hint: 'Debit, credit or online banking', accent: 'text-blue-600' },
 ]
 
@@ -35,6 +35,12 @@ const Checkout = () => {
   const { user } = useAuth()
   const { showToast } = useToast()
   const navigate = useNavigate()
+  const location = useLocation()
+  const buyNowItemIds = location.state?.buyNowItemIds || null
+  const checkoutItems = buyNowItemIds ? cart.items.filter((i) => buyNowItemIds.includes(i.id)) : cart.items
+  const checkoutTotal = buyNowItemIds
+    ? checkoutItems.reduce((sum, i) => sum + i.subtotal, 0)
+    : cart.total
 
   const [addresses, setAddresses] = useState([])
   const [selectedAddressId, setSelectedAddressId] = useState(null)
@@ -45,7 +51,9 @@ const Checkout = () => {
     full_address: '',
     is_default: false,
   })
-
+  const [deliveryLocation, setDeliveryLocation] = useState('inside_dhaka')
+  const shippingCost = checkoutTotal > 2500 ? 0 : (deliveryLocation === 'inside_dhaka' ? 60 : 130)
+  const grandTotal = checkoutTotal + shippingCost
   const [paymentMethod, setPaymentMethod] = useState('cod')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -113,7 +121,7 @@ const Checkout = () => {
     setLoading(true)
     try {
       const address = await resolveAddress()
-      const order = await createOrder(address.id)
+      const order = await createOrder(address.id, buyNowItemIds, deliveryLocation)
       setLastOrderId(order.id)
 
       if (couponCode.trim()) {
@@ -163,7 +171,7 @@ const Checkout = () => {
     { icon: FiAward, label: 'Original Products' },
   ]
 
-  if (cart.items.length === 0) {
+  if (checkoutItems.length === 0) {
     return (
       <div className="min-h-screen bg-white">
         <TopBar />
@@ -233,8 +241,8 @@ const Checkout = () => {
                     <label
                       key={addr.id}
                       className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-all duration-300 ${selectedAddressId === addr.id
-                          ? 'border-blue-500 ring-1 ring-blue-100 bg-blue-50/40'
-                          : 'border-slate-100 hover:border-slate-300'
+                        ? 'border-blue-500 ring-1 ring-blue-100 bg-blue-50/40'
+                        : 'border-slate-100 hover:border-slate-300'
                         }`}
                     >
                       <input
@@ -305,6 +313,52 @@ const Checkout = () => {
               )}
             </div>
 
+            <section>
+              <h2 className="text-lg font-semibold mb-3">Delivery Location</h2>
+              <div className="grid grid-cols-2 gap-3">
+                <label
+                  className={`flex flex-col gap-1 rounded-xl border p-4 cursor-pointer transition-all duration-300 ${deliveryLocation === 'inside_dhaka'
+                    ? 'border-blue-500 ring-1 ring-blue-100 bg-blue-50/40'
+                    : 'border-slate-100 hover:border-slate-300'
+                    }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="delivery_location"
+                      checked={deliveryLocation === 'inside_dhaka'}
+                      onChange={() => setDeliveryLocation('inside_dhaka')}
+                      className="accent-blue-600"
+                    />
+                    <span className="text-sm font-semibold text-slate-800">Inside Dhaka</span>
+                  </div>
+                  <span className="text-xs text-slate-500 ml-6">
+                    {checkoutTotal > 2500 ? 'Free (order over ৳2500)' : '৳60 delivery charge'}
+                  </span>
+                </label>
+                <label
+                  className={`flex flex-col gap-1 rounded-xl border p-4 cursor-pointer transition-all duration-300 ${deliveryLocation === 'outside_dhaka'
+                    ? 'border-blue-500 ring-1 ring-blue-100 bg-blue-50/40'
+                    : 'border-slate-100 hover:border-slate-300'
+                    }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="delivery_location"
+                      checked={deliveryLocation === 'outside_dhaka'}
+                      onChange={() => setDeliveryLocation('outside_dhaka')}
+                      className="accent-blue-600"
+                    />
+                    <span className="text-sm font-semibold text-slate-800">Outside Dhaka</span>
+                  </div>
+                  <span className="text-xs text-slate-500 ml-6">
+                    {checkoutTotal > 2500 ? 'Free (order over ৳2500)' : '৳130 delivery charge'}
+                  </span>
+                </label>
+              </div>
+            </section>
+
             <div className="rounded-2xl border border-slate-100 p-5 md:p-6">
               <div className="flex items-center gap-2 mb-4">
                 <FiCreditCard className="text-blue-600" size={18} />
@@ -315,8 +369,8 @@ const Checkout = () => {
                   <label
                     key={option.value}
                     className={`flex flex-col gap-1 rounded-xl border p-4 cursor-pointer transition-all duration-300 ${paymentMethod === option.value
-                        ? 'border-blue-500 ring-1 ring-blue-100 bg-blue-50/40 scale-[1.01]'
-                        : 'border-slate-100 hover:border-slate-300'
+                      ? 'border-blue-500 ring-1 ring-blue-100 bg-blue-50/40 scale-[1.01]'
+                      : 'border-slate-100 hover:border-slate-300'
                       }`}
                   >
                     <div className="flex items-center gap-2">
@@ -334,18 +388,18 @@ const Checkout = () => {
                 ))}
               </div>
             </div>
-              {/* Coupon section */}
+            {/* Coupon section */}
             <section>
-            <label className="text-sm font-semibold text-slate-800 mb-2 block">Coupon Code (optional)</label>
-            <input
-              type="text"
-              value={couponCode}
-              onChange={(e) => setCouponCode(e.target.value)}
-              placeholder="Enter coupon code"
-              className="w-full border rounded px-3 py-2 transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
-            />
-            <p className="text-xs text-slate-400 mt-1">Applied automatically when you place the order.</p>
-          </section>
+              <label className="text-sm font-semibold text-slate-800 mb-2 block">Coupon Code (optional)</label>
+              <input
+                type="text"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
+                placeholder="Enter coupon code"
+                className="w-full border rounded px-3 py-2 transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+              <p className="text-xs text-slate-400 mt-1">Applied automatically when you place the order.</p>
+            </section>
 
             <label className="flex items-start gap-2.5 px-1">
               <input
@@ -380,19 +434,31 @@ const Checkout = () => {
             <div className="rounded-2xl border border-slate-100 p-5 md:p-6 space-y-4">
               <h2 className="font-semibold text-slate-900">Order Summary</h2>
               <div className="space-y-3 text-sm max-h-56 overflow-y-auto pr-1">
-                {cart.items.map((item) => (
+                {checkoutItems.map((item) => (
                   <div key={item.id} className="flex justify-between gap-3">
                     <span className="text-slate-600">
                       {item.variant.product_name}
-                      <span className="text-slate-400"> ({item.variant.size}/{item.variant.color}) x{item.quantity}</span>
+                      <span className="text-slate-1000 text-orange-600"> ({item.variant.size}/{item.variant.color}) x{item.quantity}</span>
                     </span>
                     <span className="font-medium text-slate-800 shrink-0">{formatPrice(item.subtotal)}</span>
                   </div>
                 ))}
               </div>
-              <div className="border-t border-slate-100 pt-4 flex justify-between items-baseline">
-                <span className="font-semibold text-slate-900">Total</span>
-                <span className="text-xl font-bold text-blue-600">{formatPrice(cart.total)}</span>
+              <div className="border-t border-slate-100 pt-4 space-y-2">
+                <div className="flex justify-between text-sm text-slate-600">
+                  <span>Subtotal</span>
+                  <span>{formatPrice(checkoutTotal)}</span>
+                </div>
+                <div className="flex justify-between text-sm text-slate-600">
+                  <span>Shipping</span>
+                  <span className={shippingCost === 0 ? 'text-green-600 font-medium' : ''}>
+                    {shippingCost === 0 ? 'FREE' : formatPrice(shippingCost)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-baseline pt-2 border-t border-slate-100">
+                  <span className="font-semibold text-slate-900">Total</span>
+                  <span className="text-xl font-bold text-blue-600">{formatPrice(grandTotal)}</span>
+                </div>
               </div>
               <button
                 onClick={handlePlaceOrder}
@@ -402,7 +468,7 @@ const Checkout = () => {
                 {loading && (
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 )}
-                {loading ? 'Placing Order...' : `Place Order • ${formatPrice(cart.total)}`}
+                {loading ? 'Placing Order...' : `Place Order • ${formatPrice(grandTotal)}`}
               </button>
             </div>
 

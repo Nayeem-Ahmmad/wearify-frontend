@@ -1,9 +1,9 @@
 import api from './axios'
 
-export const createOrder = async (addressId) => {
-  const response = await api.post('/shop/orders/', {
-    shipping_address_id: addressId,
-  })
+export const createOrder = async (addressId, itemIds = null, deliveryLocation = 'inside_dhaka') => {
+  const payload = { shipping_address_id: addressId, delivery_location: deliveryLocation }
+  if (itemIds) payload.item_ids = itemIds
+  const response = await api.post('/shop/orders/', payload)
   return response.data
 }
 

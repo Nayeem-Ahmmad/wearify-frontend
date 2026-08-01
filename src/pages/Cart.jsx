@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { FiShoppingBag, FiTrash2, FiChevronRight, FiShield, FiRefreshCw, FiCheck, FiTruck } from 'react-icons/fi'
 import TopBar from '../components/TopBar'
 import Navbar from '../components/Navbar'
@@ -7,9 +8,8 @@ import RecentlyViewed from '../components/RecentlyViewed'
 import { useCart } from '../context/CartContext'
 import { useToast } from '../components/Toast'
 import { formatPrice } from '../utils/productHelpers'
-import { API_BASE_URL } from '../api/axios'
 
-const FREE_SHIPPING_THRESHOLD = 2000
+const FREE_SHIPPING_THRESHOLD = 2500
 
 const trustBadges = [
     { icon: FiShield, label: 'Secure Checkout' },
@@ -23,6 +23,7 @@ const paymentMethods = ['VISA', 'Mastercard', 'bKash', 'Nagad', 'COD']
 const Cart = () => {
     const { cart, cartCount, loading, removeItem, updateItem } = useCart()
     const { showToast } = useToast()
+    const navigate = useNavigate()
     const [removingIds, setRemovingIds] = useState([])
     const [updatingIds, setUpdatingIds] = useState([])
 
@@ -94,23 +95,23 @@ const Cart = () => {
     }
 
     return (
-        <div className="min-h-screen bg-white pb-24 md:pb-4">
+        <div className="min-h-screen bg-white pb-24 md:pb-4 overflow-x-hidden">
             <TopBar />
             <Navbar />
 
             <div className="max-w-6xl mx-auto px-4 py-6">
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-900">Shopping Cart</h1>
+                <div className="flex items-center justify-between mb-6 gap-3">
+                    <div className="min-w-0">
+                        <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Shopping Cart</h1>
                         <p className="text-sm text-slate-500 mt-1">{cartCount} item{cartCount !== 1 ? 's' : ''} in your cart</p>
                     </div>
-                    <a href="/shop" className="hidden sm:flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline">
+                    <a href="/shop" className="hidden sm:flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline shrink-0">
                         Continue Shopping <FiChevronRight size={14} />
                     </a>
                 </div>
 
-                <div className="grid lg:grid-cols-[1fr_340px] gap-8">
-                    <div className="space-y-3">
+                <div className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 lg:gap-8">
+                    <div className="min-w-0 space-y-3">
                         {cart.items.map((item) => {
                             const variant = item.variant
                             const image = variant.product_image ||
@@ -122,16 +123,16 @@ const Cart = () => {
                             return (
                                 <div
                                     key={item.id}
-                                    className={`flex gap-4 p-4 rounded-2xl border border-slate-100 transition-all duration-300 ${isRemoving ? 'opacity-0 -translate-x-4' : 'opacity-100 hover:shadow-md'
+                                    className={`flex gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl border border-slate-100 min-w-0 transition-all duration-300 ${isRemoving ? 'opacity-0 -translate-x-4' : 'opacity-100 hover:shadow-md'
                                         }`}
                                 >
-                                    <a href={`/products/${variant.product_slug}`} className="w-24 h-24 rounded-xl overflow-hidden bg-slate-100 shrink-0">
+                                    <a href={`/products/${variant.product_slug}`} className="w-16 h-16 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-slate-100 shrink-0">
                                         <img src={image} alt={variant.product_name} className="w-full h-full object-cover" />
                                     </a>
 
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <div className="min-w-0">
+                                        <div className="flex items-start justify-between gap-2 min-w-0">
+                                            <div className="min-w-0 flex-1">
                                                 {variant.product_brand && (
                                                     <p className="text-[11px] font-medium text-blue-600 uppercase tracking-wide">
                                                         {variant.product_brand}
@@ -140,51 +141,59 @@ const Cart = () => {
 
                                                 <a
                                                     href={`/products/${variant.product_slug}`}
-                                                    className="font-medium text-slate-900 hover:text-blue-600 transition-colors duration-300 truncate block"
+                                                    className="font-medium text-sm sm:text-base text-slate-900 hover:text-blue-600 transition-colors duration-300 line-clamp-2 break-words"
                                                 >
                                                     {variant.product_name}
                                                 </a>
-                                                <p className="text-xs text-slate-500 mt-1">
+                                                <p className="text-xs text-slate-500 mt-1 truncate">
                                                     {variant.size && `Size: ${variant.size}`}
-                                                    {variant.size && variant.color && ' | '}
+                                                    {variant.size && variant.color && ' · '}
                                                     {variant.color && `Color: ${variant.color}`}
                                                 </p>
                                             </div>
 
-                                            <button
-                                                onClick={() => handleRemove(item.id)}
-                                                className="text-slate-400 hover:text-red-500 transition-colors duration-300 shrink-0"
-                                            >
-                                                <FiTrash2 size={16} />
-                                            </button>
+                                            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                                                <button
+                                                    onClick={() => navigate('/checkout', { state: { buyNowItemIds: [item.id] } })}
+                                                    className="text-xs font-medium text-blue-600 hover:underline whitespace-nowrap"
+                                                >
+                                                    Buy Now
+                                                </button>
+                                                <button
+                                                    onClick={() => handleRemove(item.id)}
+                                                    className="text-slate-400 hover:text-red-500 transition-colors duration-300"
+                                                >
+                                                    <FiTrash2 size={16} />
+                                                </button>
+                                            </div>
                                         </div>
 
                                         {lowStock && (
                                             <p className="text-[11px] text-orange-500 mt-1">Only {variant.stock_quantity} left in stock</p>
                                         )}
 
-                                        <div className="flex items-center justify-between mt-3">
-                                            <div className="flex items-center border border-slate-200 rounded-lg">
+                                        <div className="flex items-center justify-between flex-wrap gap-2 mt-3">
+                                            <div className="flex items-center border border-slate-200 rounded-lg shrink-0">
                                                 <button
                                                     onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                                                     disabled={isUpdating}
-                                                    className="w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors duration-300 disabled:opacity-40"
+                                                    className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors duration-300 disabled:opacity-40"
                                                 >
                                                     −
                                                 </button>
-                                                <span key={item.quantity} className="w-8 text-center text-sm font-medium animate-fade-in">
+                                                <span key={item.quantity} className="w-7 sm:w-8 text-center text-sm font-medium animate-fade-in">
                                                     {item.quantity}
                                                 </span>
                                                 <button
                                                     onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                                                     disabled={isUpdating || item.quantity >= variant.stock_quantity}
-                                                    className="w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors duration-300 disabled:opacity-40"
+                                                    className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors duration-300 disabled:opacity-40"
                                                 >
                                                     +
                                                 </button>
                                             </div>
 
-                                            <span key={item.quantity + '-' + variant.price} className="font-bold text-slate-900 animate-fade-in">
+                                            <span key={item.quantity + '-' + variant.price} className="font-bold text-sm sm:text-base text-slate-900 animate-fade-in whitespace-nowrap">
                                                 {formatPrice(variant.price * item.quantity)}
                                             </span>
                                         </div>
@@ -194,7 +203,7 @@ const Cart = () => {
                         })}
                     </div>
 
-                    <div>
+                    <div className="min-w-0">
                         <div className="lg:sticky lg:top-24 space-y-4">
                             <div className="p-5 rounded-2xl border border-slate-100">
                                 {remaining > 0 ? (
@@ -237,7 +246,6 @@ const Cart = () => {
                                     </span>
                                 </div>
 
-
                                 <a
                                     href="/checkout"
                                     className="block w-full text-center bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3.5 rounded-full font-medium hover:shadow-lg hover:shadow-blue-200 hover:scale-[1.02] active:scale-95 transition-all duration-300"
@@ -270,18 +278,18 @@ const Cart = () => {
                 </div>
 
                 <RecentlyViewed />
-            </div >
+            </div>
 
             <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] p-4 md:hidden">
                 <div className="flex items-center justify-between gap-4">
-                    <div>
+                    <div className="min-w-0">
                         <p className="text-xs text-slate-500">Total ({cartCount} items)</p>
                         <p className="font-bold text-blue-600">{formatPrice(subtotal)}</p>
                     </div>
 
                     <a
                         href="/checkout"
-                        className="bg-blue-600 text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-blue-700 transition-all duration-300"
+                        className="bg-blue-600 text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-blue-700 transition-all duration-300 shrink-0"
                     >
                         Checkout
                     </a>

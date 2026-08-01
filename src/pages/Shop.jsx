@@ -24,6 +24,7 @@ const Shop = () => {
     max_price: '',
     search: searchParams.get('search') || '',
     ordering: '',
+    on_sale: '',
   })
 
   useEffect(() => {

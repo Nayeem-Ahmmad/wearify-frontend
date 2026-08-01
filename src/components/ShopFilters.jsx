@@ -92,6 +92,18 @@ const ShopFilters = ({ filters, onChange }) => {
             className="w-1/2 px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-blue-500 transition-all duration-300"
           />
         </div>
+
+        <div className="mt-3">
+          <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filters.on_sale === 'true'}
+              onChange={(e) => handleChange('on_sale', e.target.checked ? 'true' : '')}
+              className="accent-orange-500"
+            />
+            <span className="flex items-center gap-1.5">🔥 On Sale Only</span>
+          </label>
+        </div>
       </div>
     </div>
   )

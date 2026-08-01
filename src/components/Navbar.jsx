@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { FiSearch, FiHeart, FiShoppingCart, FiUser, FiMenu, FiChevronDown } from 'react-icons/fi'
+import { FiSearch, FiHeart, FiShoppingCart, FiUser, FiMenu, FiChevronDown, FiX, FiLogOut } from 'react-icons/fi'
 import Logo from './Logo'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
@@ -21,6 +21,7 @@ const Navbar = () => {
     const { authenticated, user, logout } = useAuth()
     const [scrolled, setScrolled] = useState(false)
     const [bump, setBump] = useState(false)
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const { cartCount } = useCart()
 
     const [searchQuery, setSearchQuery] = useState('')
@@ -202,7 +203,7 @@ const Navbar = () => {
                         </a>
                     )}
 
-                    <button className="md:hidden text-slate-700">
+                    <button onClick={() => setMobileMenuOpen(true)} className="md:hidden text-slate-700">
                         <FiMenu size={24} />
                     </button>
                 </div>
@@ -223,6 +224,97 @@ const Navbar = () => {
                     </nav>
                 </div>
             </div>
+            {mobileMenuOpen && (
+                <div className="fixed inset-0 z-[60] md:hidden">
+                    <div
+                        className="absolute inset-0 bg-black/40 animate-fade-in"
+                        onClick={() => setMobileMenuOpen(false)}
+                    />
+                    <div className="absolute right-0 top-0 h-full w-72 bg-white shadow-xl animate-scale-in overflow-y-auto">
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                            <Logo />
+                            <button onClick={() => setMobileMenuOpen(false)} className="text-slate-500 hover:text-slate-700">
+                                <FiX size={22} />
+                            </button>
+                        </div>
+
+                        <nav className="flex flex-col py-2">
+                            {navLinks.map((link) => (
+                                <a
+                                    key={link.label}
+                                    href={link.href}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors duration-200"
+                                >
+                                    {link.label}
+                                </a>
+                            ))}
+                        </nav>
+
+                        <div className="border-t border-slate-100 py-2">
+                            <a
+                                href="/wishlist"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="flex items-center gap-3 px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors duration-200"
+                            >
+                                <FiHeart size={16} /> Wishlist
+                                {wishlistCount > 0 && (
+                                    <span className="ml-auto bg-blue-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                                        {wishlistCount}
+                                    </span>
+                                )}
+                            </a>
+                            <a
+                                href="/cart"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="flex items-center gap-3 px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors duration-200"
+                            >
+                                <FiShoppingCart size={16} /> Cart
+                                {cartCount > 0 && (
+                                    <span className="ml-auto bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                                        {cartCount}
+                                    </span>
+                                )}
+                            </a>
+                        </div>
+
+                        <div className="border-t border-slate-100 py-2">
+                            {authenticated ? (
+                                <>
+                                    <a
+                                        href="/account"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center gap-3 px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors duration-200"
+                                    >
+                                        <FiUser size={16} /> My Account
+                                    </a>
+                                    <a
+                                        href="/orders"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center gap-3 px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors duration-200"
+                                    >
+                                        <FiShoppingCart size={16} /> My Orders
+                                    </a>
+                                    <button
+                                        onClick={() => { setMobileMenuOpen(false); logout() }}
+                                        className="w-full flex items-center gap-3 px-5 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors duration-200"
+                                    >
+                                        <FiLogOut size={16} /> Logout
+                                    </button>
+                                </>
+                            ) : (
+                                <a
+                                    href="/login"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="flex items-center gap-3 px-5 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors duration-200"
+                                >
+                                    <FiUser size={16} /> Sign In
+                                </a>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </header>
     )
 }
