@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext'
 import { getProducts } from '../api/products'
 import { useWishlist } from '../context/WishlistContext'
 import { getProductImage, getProductPrice, formatPrice } from '../utils/productHelpers'
+import { API_BASE_URL } from '../api/axios'
 
 const navLinks = [
     { label: 'Home', href: '/' },
@@ -16,6 +17,11 @@ const navLinks = [
     { label: 'About Us', href: '/about' },
     { label: 'Contact Us', href: '/contact' },
 ]
+
+const getAvatarUrl = (path) => {
+    if (!path) return null
+    return path.startsWith('http') ? path : `${API_BASE_URL}${path}`
+}
 
 const Navbar = () => {
     const { authenticated, user, logout } = useAuth()
@@ -164,16 +170,16 @@ const Navbar = () => {
 
                     {authenticated ? (
                         <div className="relative group">
-                            <button className="flex items-center gap-2">
-                                {user?.profile_image ? (
+                            <button className="flex items-center gap-2 rounded-full focus:outline-none">
+                                {getAvatarUrl(user?.profile_image) ? (
                                     <img
-                                        src={user.profile_image}
+                                        src={getAvatarUrl(user?.profile_image)}
                                         alt="Profile"
-                                        className="w-8 h-8 rounded-full object-cover border border-slate-200"
+                                        className="w-11 h-11 rounded-full object-cover border-2 border-slate-200 hover:border-blue-400 transition-colors duration-300"
                                     />
                                 ) : (
-                                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                                        <FiUser size={16} />
+                                    <div className="w-11 h-11 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-200 transition-colors duration-300">
+                                        <FiUser size={20} />
                                     </div>
                                 )}
                             </button>

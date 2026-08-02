@@ -41,9 +41,11 @@ const ProductCard = ({ product, dark = false, badge }) => {
   const image = getProductImage(product)
   const price = getProductPrice(product)
   const variant = product.variants?.[0]
-  const hasDiscount = variant?.is_on_sale === true
+  const currentPrice = Number(variant?.price ?? product.base_price)
+  const originalPrice = Number(variant?.original_price ?? product.base_price)
+  const hasDiscount = variant?.is_on_sale === true && originalPrice > currentPrice
   const discountPercent = hasDiscount
-    ? Math.round((1 - Number(variant.price_override) / Number(product.base_price)) * 100)
+    ? Math.round((1 - currentPrice / originalPrice) * 100)
     : 0
 
   return (
@@ -87,8 +89,8 @@ const ProductCard = ({ product, dark = false, badge }) => {
           </span>
           {hasDiscount && (
             <>
-              <span className={`text-xs font-medium line-through decoration-1 decoration-orange-400 text-orange-500`}>
-                {formatPrice(product.base_price)}
+              <span className={`text-xs font-medium line-through decoration-2 decoration-orange-400 text-orange-500`}>
+                {formatPrice(originalPrice)}
               </span>
               <span className="text-[10px] font-bold text-white bg-red-500 px-1.5 py-0.5 rounded-full">
                 -{discountPercent}%

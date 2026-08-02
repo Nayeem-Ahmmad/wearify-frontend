@@ -14,7 +14,10 @@ export const AuthProvider = ({ children }) => {
       return
     }
     api.get('/shop/profile/')
-      .then((res) => setUser(res.data[0] || null))
+      .then((res) => {
+        const data = res.data.results || res.data
+        setUser(data[0] || null)
+      })
       .catch(() => setUser(null))
   }, [authenticated])
 

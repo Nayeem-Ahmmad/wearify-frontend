@@ -171,10 +171,12 @@ const ProductDetail = () => {
   }
 
   const images = getProductImages(product)
-  const price = selectedVariant ? selectedVariant.price : product.base_price
-  const hasDiscount = selectedVariant?.is_on_sale === true
+  const currentPrice = Number(selectedVariant?.price ?? product.base_price)
+  const originalPrice = Number(selectedVariant?.original_price ?? product.base_price)
+  const price = currentPrice
+  const hasDiscount = selectedVariant?.is_on_sale === true && originalPrice > currentPrice
   const discountPercent = hasDiscount
-    ? Math.round((1 - Number(selectedVariant.price_override) / Number(product.base_price)) * 100)
+    ? Math.round((1 - currentPrice / originalPrice) * 100)
     : 0
   const stock = selectedVariant ? selectedVariant.stock_quantity : null
   const inStock = stock === null || stock > 0
@@ -281,8 +283,8 @@ const ProductDetail = () => {
               <span className="text-2xl font-bold text-blue-600">{formatPrice(price)}</span>
               {hasDiscount && (
                 <>
-                  <span className="text-base font-medium text-orange-500 line-through decoration-1 decoration-red-700">
-                    {formatPrice(product.base_price)}
+                  <span className="text-base font-medium text-orange-500 line-through decoration-2 decoration-orange-400">
+                    {formatPrice(originalPrice)}
                   </span>
                   <span className="text-xs font-bold text-white bg-red-500 px-2 py-1 rounded-full">
                     Save {discountPercent}%

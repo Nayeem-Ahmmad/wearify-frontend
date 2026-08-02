@@ -291,10 +291,10 @@ const Account = () => {
             <TopBar />
             <Navbar />
 
-            <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-14">
+            <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-10 md:py-14">
                 <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_15%_20%,_#2563EB_0%,_transparent_45%),radial-gradient(circle_at_85%_80%,_#9333EA_0%,_transparent_45%)]" />
-                <div className="relative max-w-6xl mx-auto px-4 flex items-center gap-5">
-                    <div className="w-16 h-16 rounded-full overflow-hidden bg-white shadow-lg border-2 border-white shrink-0">
+                <div className="relative max-w-6xl mx-auto px-4 flex items-center gap-4 md:gap-5">
+                    <div className="w-20 h-20 md:w-56 md:h-56 rounded-full overflow-hidden bg-white shadow-lg border-2 md:border-4 border-white shrink-0">
                         {getAvatarUrl() ? (
                             <img src={getAvatarUrl()} alt="Profile" className="w-full h-full object-cover" />
                         ) : (
@@ -303,14 +303,14 @@ const Account = () => {
                             </div>
                         )}
                     </div>
-                    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+                    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="min-w-0">
                         <span className="inline-block text-xs font-semibold tracking-widest text-blue-600 mb-1">
                             ACCOUNT
                         </span>
-                        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900">
+                        <h1 className="text-xl md:text-3xl font-extrabold text-slate-900 truncate">
                             {profile?.user?.username || 'My Account'}
                         </h1>
-                        <p className="text-sm text-slate-500 mt-0.5">{profile?.user?.email || ''}</p>
+                        <p className="text-xs md:text-sm text-slate-500 mt-0.5 truncate">{profile?.user?.email || ''}</p>
                     </motion.div>
                 </div>
             </section>
@@ -328,8 +328,8 @@ const Account = () => {
                                         key={tab.key}
                                         onClick={() => setActiveTab(tab.key)}
                                         className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium whitespace-nowrap shrink-0 transition-all duration-300 ${active
-                                                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-200'
-                                                : 'text-slate-600 hover:bg-slate-50'
+                                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-200'
+                                            : 'text-slate-600 hover:bg-slate-50'
                                             }`}
                                     >
                                         <Icon size={16} />
@@ -434,32 +434,20 @@ const Account = () => {
                                     className="rounded-3xl border border-slate-100 p-6 md:p-8"
                                 >
                                     <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                                        <div className="relative shrink-0 group">
-                                            <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center border-4 border-white shadow-lg">
-                                                {getAvatarUrl() ? (
-                                                    <img
-                                                        src={getAvatarUrl()}
-                                                        alt="Profile"
-                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                                    />
-                                                ) : (
-                                                    <FiUser size={32} className="text-blue-400" />
-                                                )}
-                                            </div>
-                                            <button
-                                                onClick={() => fileInputRef.current?.click()}
-                                                className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 hover:scale-110 transition-all duration-300 shadow-md"
-                                            >
-                                                <FiCamera size={14} />
-                                            </button>
-                                            <input
-                                                ref={fileInputRef}
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleAvatarChange}
-                                                className="hidden"
-                                            />
-                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="flex items-center gap-2 text-sm text-blue-600 font-medium hover:underline shrink-0"
+                                        >
+                                            <FiCamera size={16} /> Change Photo
+                                        </button>
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleAvatarChange}
+                                            className="hidden"
+                                        />
 
                                         <div className="flex-1 w-full space-y-4">
                                             <div className="grid sm:grid-cols-2 gap-4">

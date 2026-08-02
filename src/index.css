@@ -66,3 +66,15 @@
 .animate-shake {
   animation: shake 0.4s ease-in-out;
 }
+
+@keyframes flash-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-flash-marquee {
+  display: flex;
+  animation: flash-marquee 18s linear infinite;
+}
+.animate-flash-marquee:hover {
+  animation-play-state: paused;
+}

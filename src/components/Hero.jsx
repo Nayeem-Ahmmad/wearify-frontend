@@ -5,11 +5,14 @@ import { getDeals } from '../api/products'
 import { getProductImage, formatPrice } from '../utils/productHelpers'
 
 const getDiscountPercent = (product) => {
-  const variant = product.variants?.find(
-    (v) => v.price_override != null && Number(v.price_override) < Number(product.base_price)
-  )
-  if (!variant) return 0
-  return Math.round((1 - Number(variant.price_override) / Number(product.base_price)) * 100)
+  const variant = product.variants?.[0]
+  if (!variant || variant.is_on_sale !== true) return 0
+
+  const originalPrice = Number(variant.original_price ?? product.base_price)
+  const currentPrice = Number(variant.price ?? product.base_price)
+
+  if (!originalPrice || !currentPrice || currentPrice >= originalPrice) return 0
+  return Math.round((1 - currentPrice / originalPrice) * 100)
 }
 
 const Hero = () => {
@@ -53,11 +56,14 @@ const Hero = () => {
   if (slides.length === 0) return null
 
   const slide = slides[index]
-  const finalPrice = slide.base_price * (1 - slide._discount / 100)
+  const firstVariant = slide.variants?.[0]
+  const currentPrice = Number(firstVariant?.price ?? slide.base_price)
+  const originalPrice = Number(firstVariant?.original_price ?? slide.base_price)
+  const hasDiscount = slide._discount > 0 && firstVariant?.is_on_sale === true && originalPrice > currentPrice
 
   return (
     <section className="px-3 md:px-6 py-5 md:py-8">
-      <div className="max-w-7xl mx-auto rounded-3xl border border-slate-100 bg-white shadow-sm">
+      <div className="relative max-w-7xl mx-auto rounded-3xl border border-slate-100 bg-white shadow-sm">
         <div className="grid md:grid-cols-2 gap-6 md:gap-10 items-center px-6 md:px-14 py-8 md:py-10">
 
           <AnimatePresence mode="wait">
@@ -69,8 +75,9 @@ const Hero = () => {
               transition={{ duration: 0.4 }}
               className="text-center md:text-left order-2 md:order-1"
             >
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 tracking-widest mb-3 bg-blue-50 px-3 py-1.5 rounded-full">
-                <FiZap size={12} /> {slide.category?.name?.toUpperCase() || 'DEAL OF THE DAY'}
+              <span className="inline-flex items-center gap-2 text-xs font-semibold text-blue-600 tracking-[0.15em] mb-4">
+                <span className="w-6 h-[2px] bg-blue-600 rounded-full" />
+                {slide.category?.name?.toUpperCase() || 'DEAL OF THE DAY'}
               </span>
 
               <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 leading-tight mb-3 line-clamp-2 max-w-md mx-auto md:mx-0">
@@ -78,10 +85,10 @@ const Hero = () => {
               </h1>
 
               <div className="flex items-center justify-center md:justify-start gap-3 mb-6">
-                <span className="text-xl md:text-2xl font-extrabold tracking-tight text-slate-900">{formatPrice(finalPrice)}</span>
-                {slide._discount > 0 && (
+                <span className="text-xl md:text-2xl font-extrabold tracking-tight text-slate-900">{formatPrice(currentPrice)}</span>
+                {hasDiscount && (
                   <>
-                    <span className="text-sm text-orange-500 line-through">{formatPrice(slide.base_price)}</span>
+                    <span className="text-sm text-orange-500 line-through">{formatPrice(originalPrice)}</span>
                     <span className="text-xs font-bold text-white bg-red-500 px-2.5 py-1 rounded-full">
                       -{slide._discount}%
                     </span>
@@ -131,25 +138,26 @@ const Hero = () => {
                 </motion.div>
               )}
 
-              {slides.length > 1 && (
-                <>
-                  <button
-                    onClick={prev}
-                    className="absolute -left-3 top-1/2 -translate-y-1/2 bg-white shadow-md border border-slate-100 rounded-full w-8 h-8 flex items-center justify-center hover:scale-110 hover:border-blue-200 transition-all duration-300 z-10"
-                  >
-                    <FiChevronLeft size={14} />
-                  </button>
-                  <button
-                    onClick={next}
-                    className="absolute -right-3 top-1/2 -translate-y-1/2 bg-white shadow-md border border-slate-100 rounded-full w-8 h-8 flex items-center justify-center hover:scale-110 hover:border-blue-200 transition-all duration-300 z-10"
-                  >
-                    <FiChevronRight size={14} />
-                  </button>
-                </>
-              )}
             </div>
           </div>
         </div>
+
+        {slides.length > 1 && (
+          <>
+            <button
+              onClick={prev}
+              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white shadow-lg ring-1 ring-slate-100 rounded-full w-10 h-10 flex items-center justify-center hover:scale-110 hover:ring-blue-200 transition-all duration-300 z-10"
+            >
+              <FiChevronLeft size={18} className="text-slate-700" />
+            </button>
+            <button
+              onClick={next}
+              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white shadow-lg ring-1 ring-slate-100 rounded-full w-10 h-10 flex items-center justify-center hover:scale-110 hover:ring-blue-200 transition-all duration-300 z-10"
+            >
+              <FiChevronRight size={18} className="text-slate-700" />
+            </button>
+          </>
+        )}
 
         {slides.length > 1 && (
           <div className="flex justify-center gap-1.5 pb-5 md:pb-6">
