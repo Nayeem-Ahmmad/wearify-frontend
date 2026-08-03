@@ -21,9 +21,11 @@ import NewArrivalsPage from './pages/NewArrivals'
 import Account from './pages/Account'
 import DealsPage from './pages/Deals'
 import Terms from './pages/Terms'
-// import PrivacyPolicy from './pages/PrivacyPolicy'
+import PrivacyPolicy from './pages/PrivacyPolicy'
 import FAQPage from './pages/FAQ'
 import Help from './pages/Help'
+import TrackOrder from './pages/TrackOrder'
+import ShippingInfo from './pages/ShippingInfo'
 
 function App() {
   return (
@@ -53,9 +55,11 @@ function App() {
                 <Route path="/account" element={<Account />} />
                 <Route path="/deals" element={<DealsPage />} />
                 <Route path="/terms" element={<Terms />} />
-                {/* <Route path="/privacy-policy" element={<PrivacyPolicy />} /> */}
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/help" element={<Help />} />
+                <Route path="/track-order" element={<TrackOrder />} />
+                <Route path="/shipping-info" element={<ShippingInfo />} />
               </Routes>
             </BrowserRouter>
           </WishlistProvider>

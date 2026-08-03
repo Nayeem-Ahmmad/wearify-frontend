@@ -28,6 +28,7 @@ export const CartProvider = ({ children }) => {
   const addItem = async (variantId, quantity = 1) => {
     const data = await addToCart(variantId, quantity)
     setCart(data)
+    return data
   }
 
   const removeItem = async (itemId) => {

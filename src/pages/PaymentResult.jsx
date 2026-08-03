@@ -137,6 +137,13 @@ const PaymentResult = ({ type }) => {
                                         </div>
                                     </div>
 
+                                    {order.coupon && (
+                                        <div className="flex justify-between text-sm text-green-600 font-medium border-t border-slate-100 pt-3 mb-1">
+                                            <span>Coupon used — get {Math.round(Number(order.coupon.discount_percent))}% discount</span>
+                                            <span>−{formatPrice(order.coupon_discount)}</span>
+                                        </div>
+                                    )}
+
                                     {type !== 'success' && (
                                         <div className="border-t border-slate-100 pt-4">
                                             {retryError && (

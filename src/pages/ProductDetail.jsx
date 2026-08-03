@@ -16,6 +16,7 @@ import { getProduct, getRelatedProducts } from '../api/products'
 import { getReviews } from '../api/reviews'
 import { getProductImages, formatPrice } from '../utils/productHelpers'
 
+import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 
@@ -53,6 +54,7 @@ const ProductDetail = () => {
   const [flyAnim, setFlyAnim] = useState(false)
   const [buyNowLoading, setBuyNowLoading] = useState(false)
   const cartBtnRef = useRef(null)
+  const { authenticated } = useAuth()
   const { addItem } = useCart()
   const { isWishlisted, toggleWishlist } = useWishlist()
   const navigate = useNavigate()
@@ -109,11 +111,16 @@ const ProductDetail = () => {
   }
 
   const handleBuyNow = async () => {
+    if (!authenticated) {
+      navigate('/login')
+      return
+    }
     if (!selectedVariant) return
     setBuyNowLoading(true)
     try {
-      await addItem(selectedVariant.id, quantity)
-      navigate('/checkout')
+      const data = await addItem(selectedVariant.id, quantity)
+      const cartItem = data.items.find((i) => i.variant.id === selectedVariant.id)
+      navigate('/checkout', { state: cartItem ? { buyNowItemIds: [cartItem.id] } : undefined })
     } catch {
       showToast('Please login to buy this product')
     } finally {

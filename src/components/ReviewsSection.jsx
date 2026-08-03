@@ -46,8 +46,8 @@ const ReviewsSection = ({ productId }) => {
       setShowForm(false)
       showToast('Review submitted successfully')
       loadReviews()
-    } catch {
-      showToast('Could not submit review')
+    } catch (err) {
+      showToast(err.response?.data?.[0] || err.response?.data?.non_field_errors?.[0] || 'Could not submit review')
     } finally {
       setSubmitting(false)
     }

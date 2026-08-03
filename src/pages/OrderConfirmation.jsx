@@ -126,8 +126,8 @@ const OrderConfirmation = () => {
                           <div className="flex flex-col items-center shrink-0">
                             <div
                               className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${reached
-                                  ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-md shadow-blue-200'
-                                  : 'bg-slate-100 text-slate-400'
+                                ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-md shadow-blue-200'
+                                : 'bg-slate-100 text-slate-400'
                                 }`}
                             >
                               <Icon size={15} />
@@ -175,11 +175,19 @@ const OrderConfirmation = () => {
                     <span>{formatPrice(order.shipping_cost)}</span>
                   </div>
                 )}
-                <div className="border-t border-slate-100 pt-4 flex justify-between items-baseline">
-                  <span className="font-semibold text-slate-900">Total</span>
-                  <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    {formatPrice(order.total_amount)}
-                  </span>
+                <div className="border-t border-slate-100 pt-4 space-y-2">
+                  {order.coupon && (
+                    <div className="flex justify-between text-sm text-green-600 font-medium">
+                      <span>Coupon used — get {Math.round(Number(order.coupon.discount_percent))}% discount</span>
+                      <span>−{formatPrice(order.coupon_discount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-baseline">
+                    <span className="font-semibold text-slate-900">Total</span>
+                    <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      {formatPrice(order.total_amount)}
+                    </span>
+                  </div>
                 </div>
 
                 {order.shipping_address && (
