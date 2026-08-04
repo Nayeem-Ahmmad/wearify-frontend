@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   FiHeart, FiShoppingCart, FiChevronRight, FiCheck, FiZoomIn, FiX,
-  FiTruck, FiRefreshCw, FiShield, FiChevronDown, FiBell, FiCheckCircle,
+  FiTruck, FiRefreshCw, FiShield, FiChevronDown,
 } from 'react-icons/fi'
 import TopBar from '../components/TopBar'
 import Navbar from '../components/Navbar'
@@ -14,8 +14,7 @@ import RecentlyViewed, { addToRecentlyViewed } from '../components/RecentlyViewe
 import { useToast } from '../components/Toast'
 import { getProduct, getRelatedProducts } from '../api/products'
 import { getReviews } from '../api/reviews'
-import { subscribeStockNotification } from '../api/stockNotifications'
-import { getProductImages, formatPrice } from '../utils/productHelpers'
+import { getProductImages, getProductImagesWithColor, formatPrice } from '../utils/productHelpers'
 
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
@@ -54,8 +53,6 @@ const ProductDetail = () => {
   const [showSticky, setShowSticky] = useState(false)
   const [flyAnim, setFlyAnim] = useState(false)
   const [buyNowLoading, setBuyNowLoading] = useState(false)
-  const [notifySubscribed, setNotifySubscribed] = useState(false)
-  const [notifyLoading, setNotifyLoading] = useState(false)
   const cartBtnRef = useRef(null)
   const { authenticated } = useAuth()
   const { addItem } = useCart()
@@ -90,10 +87,6 @@ const ProductDetail = () => {
   }, [product])
 
   useEffect(() => {
-    setNotifySubscribed(false)
-  }, [selectedVariant?.id])
-
-  useEffect(() => {
     const onScroll = () => {
       if (!cartBtnRef.current) return
       const rect = cartBtnRef.current.getBoundingClientRect()
@@ -104,10 +97,6 @@ const ProductDetail = () => {
   }, [])
 
   const handleAddToCart = async () => {
-    if (!authenticated) {
-      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
-      return
-    }
     if (!selectedVariant) return
     try {
       await addItem(selectedVariant.id, quantity)
@@ -117,13 +106,13 @@ const ProductDetail = () => {
       setTimeout(() => setAdded(false), 1500)
       setTimeout(() => setFlyAnim(false), 700)
     } catch {
-      showToast('Could not add this item to cart')
+      showToast('Please login to add items to cart')
     }
   }
 
   const handleBuyNow = async () => {
     if (!authenticated) {
-      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
+      navigate('/login')
       return
     }
     if (!selectedVariant) return
@@ -133,43 +122,17 @@ const ProductDetail = () => {
       const cartItem = data.items.find((i) => i.variant.id === selectedVariant.id)
       navigate('/checkout', { state: cartItem ? { buyNowItemIds: [cartItem.id] } : undefined })
     } catch {
-      showToast('Could not process this order')
+      showToast('Please login to buy this product')
     } finally {
       setBuyNowLoading(false)
     }
   }
 
   const handleWishlistToggle = async () => {
-    if (!authenticated) {
-      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
-      return
-    }
     try {
       await toggleWishlist(product.id)
     } catch {
-      showToast('Could not update wishlist')
-    }
-  }
-
-  const handleNotifyMe = async () => {
-    if (!authenticated) {
-      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
-      return
-    }
-    if (!selectedVariant) return
-    setNotifyLoading(true)
-    try {
-      await subscribeStockNotification(selectedVariant.id)
-      setNotifySubscribed(true)
-      showToast("We'll notify you when this is back in stock")
-    } catch (err) {
-      if (err.response?.status === 400) {
-        setNotifySubscribed(true)
-      } else {
-        showToast('Could not set up notification')
-      }
-    } finally {
-      setNotifyLoading(false)
+      showToast('Please login to use wishlist')
     }
   }
 
@@ -215,6 +178,7 @@ const ProductDetail = () => {
   }
 
   const images = getProductImages(product)
+  const imagesWithColor = getProductImagesWithColor(product)
   const currentPrice = Number(selectedVariant?.price ?? product.base_price)
   const originalPrice = Number(selectedVariant?.original_price ?? product.base_price)
   const price = currentPrice
@@ -225,12 +189,43 @@ const ProductDetail = () => {
   const stock = selectedVariant ? selectedVariant.stock_quantity : null
   const inStock = stock === null || stock > 0
 
-  const sizes = product.variants
-    ? [...new Set(product.variants.map((v) => v.size).filter(Boolean))]
-    : []
   const colors = product.variants
     ? [...new Set(product.variants.map((v) => v.color).filter(Boolean))]
     : []
+
+  // Sizes are scoped to the currently selected color (Daraz-style) — if the
+  // selected color has no matching variants (or no color chosen yet), fall
+  // back to every size across all variants.
+  const sizesForColor = selectedVariant?.color
+    ? [...new Set(
+      product.variants
+        .filter((v) => v.color === selectedVariant.color)
+        .map((v) => v.size)
+        .filter(Boolean)
+    )]
+    : []
+  const sizes = sizesForColor.length > 0
+    ? sizesForColor
+    : (product.variants ? [...new Set(product.variants.map((v) => v.size).filter(Boolean))] : [])
+
+  // Clicking a gallery photo selects the color it's tagged with (if any),
+  // keeping the current size when that size still exists for the new color.
+  const handleImageClick = (index) => {
+    setSelectedImage(index)
+    const clickedColor = imagesWithColor[index]?.color
+    if (!clickedColor) return
+    const match =
+      product.variants.find((v) => v.color === clickedColor && v.size === selectedVariant?.size) ||
+      product.variants.find((v) => v.color === clickedColor)
+    if (match) setSelectedVariant(match)
+  }
+
+  // Selecting a color (via the text swatches) also jumps the main photo to
+  // that color's tagged image, if one exists.
+  const jumpToColorImage = (color) => {
+    const idx = imagesWithColor.findIndex((img) => img.color === color)
+    if (idx !== -1) setSelectedImage(idx)
+  }
 
   return (
     <div className="min-h-screen bg-white pb-4">
@@ -268,7 +263,7 @@ const ProductDetail = () => {
                 key={selectedImage}
                 src={images[selectedImage]}
                 alt={product.name}
-                className="w-full h-full object-cover transition-all duration-300 animate-fade-in"
+                className="w-full h-full object-contain transition-all duration-300 animate-fade-in"
                 style={
                   isZooming
                     ? { transform: 'scale(2)', transformOrigin: `${zoomPos.x}% ${zoomPos.y}%` }
@@ -287,7 +282,7 @@ const ProductDetail = () => {
                 {images.map((img, i) => (
                   <button
                     key={i}
-                    onClick={() => setSelectedImage(i)}
+                    onClick={() => handleImageClick(i)}
                     className={`w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all duration-300 ${i === selectedImage ? 'border-blue-600' : 'border-transparent hover:border-slate-300'
                       }`}
                   >
@@ -349,23 +344,6 @@ const ProductDetail = () => {
                   <>
                     <span className="w-2 h-2 rounded-full bg-red-500" />
                     <span className="text-red-600 font-medium">Out of Stock</span>
-                    {stock === 0 && (
-                      <button
-                        onClick={handleNotifyMe}
-                        disabled={notifyLoading || notifySubscribed}
-                        className="ml-2 flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 disabled:opacity-70"
-                      >
-                        {notifySubscribed ? (
-                          <>
-                            <FiCheckCircle size={13} /> We'll notify you
-                          </>
-                        ) : (
-                          <>
-                            <FiBell size={13} /> {notifyLoading ? 'Please wait...' : 'Notify me when available'}
-                          </>
-                        )}
-                      </button>
-                    )}
                   </>
                 )}
               </div>
@@ -375,7 +353,14 @@ const ProductDetail = () => {
 
             {sizes.length > 0 && (
               <div className="mb-5">
-                <p className="text-sm font-semibold text-slate-800 mb-2.5">Size</p>
+                <p className="text-sm font-semibold text-slate-800 mb-2.5">
+                  Size
+                  {selectedVariant?.color && (
+                    <span className="ml-2 text-xs font-normal text-slate-400">
+                      (available in {selectedVariant.color})
+                    </span>
+                  )}
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {sizes.map((size) => (
                     <button
@@ -410,6 +395,7 @@ const ProductDetail = () => {
                           (v) => v.color === color && (!selectedVariant?.size || v.size === selectedVariant.size)
                         )
                         setSelectedVariant(match || product.variants.find((v) => v.color === color))
+                        jumpToColorImage(color)
                       }}
                       className={`px-4 h-11 rounded-lg border text-sm font-medium transition-all duration-300 hover:scale-105 ${selectedVariant?.color === color
                         ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200'

@@ -17,6 +17,18 @@ export const getProductImages = (product) => {
   return ['https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=300&q=80']
 }
 
+// Same as getProductImages, but keeps each image's tagged color so the
+// gallery can drive color/size selection (Daraz-style).
+export const getProductImagesWithColor = (product) => {
+  if (product.images && product.images.length > 0) {
+    return product.images.map((img) => ({
+      url: img.image.startsWith('http') ? img.image : `${API_BASE_URL}${img.image}`,
+      color: img.color || '',
+    }))
+  }
+  return [{ url: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=300&q=80', color: '' }]
+}
+
 export const getProductPrice = (product) => {
   if (product.variants && product.variants.length > 0) {
     return product.variants[0].price
