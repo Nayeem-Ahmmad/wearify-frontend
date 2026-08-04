@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiPackage, FiChevronRight, FiXCircle, FiClock, FiShoppingBag } from 'react-icons/fi'
+import { FiPackage, FiChevronRight, FiXCircle, FiClock, FiShoppingBag, FiDownload } from 'react-icons/fi'
 import TopBar from '../components/TopBar'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import api from '../api/axios'
+import { downloadInvoice } from '../api/orders'
 import { formatPrice, getProductImage } from '../utils/productHelpers'
 import { useToast } from '../components/Toast'
 
@@ -29,6 +30,18 @@ const MyOrders = () => {
     const [orders, setOrders] = useState([])
     const [loading, setLoading] = useState(true)
     const [cancellingId, setCancellingId] = useState(null)
+    const [downloadingId, setDownloadingId] = useState(null)
+
+    const handleDownloadInvoice = async (order) => {
+        setDownloadingId(order.id)
+        try {
+            await downloadInvoice(order.id, order.order_number)
+        } catch {
+            showToast('Could not download invoice')
+        } finally {
+            setDownloadingId(null)
+        }
+    }
 
     const loadOrders = () => {
         setLoading(true)
@@ -183,6 +196,14 @@ const MyOrders = () => {
                                                             {cancellingId === order.id ? 'Cancelling...' : 'Cancel Order'}
                                                         </button>
                                                     )}
+                                                    <button
+                                                        onClick={() => handleDownloadInvoice(order)}
+                                                        disabled={downloadingId === order.id}
+                                                        className="flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600 disabled:opacity-50 transition-colors duration-300"
+                                                    >
+                                                        <FiDownload size={13} />
+                                                        {downloadingId === order.id ? 'Downloading...' : 'Invoice'}
+                                                    </button>
                                                     <a
                                                         href={`/order-confirmation?order_id=${order.id}`}
                                                         className="group flex items-center gap-1 text-sm text-blue-600 font-semibold"

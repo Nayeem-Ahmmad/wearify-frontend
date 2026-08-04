@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   FiHeart, FiShoppingCart, FiChevronRight, FiCheck, FiZoomIn, FiX,
-  FiTruck, FiRefreshCw, FiShield, FiChevronDown,
+  FiTruck, FiRefreshCw, FiShield, FiChevronDown, FiBell, FiCheckCircle,
 } from 'react-icons/fi'
 import TopBar from '../components/TopBar'
 import Navbar from '../components/Navbar'
@@ -14,6 +14,7 @@ import RecentlyViewed, { addToRecentlyViewed } from '../components/RecentlyViewe
 import { useToast } from '../components/Toast'
 import { getProduct, getRelatedProducts } from '../api/products'
 import { getReviews } from '../api/reviews'
+import { subscribeStockNotification } from '../api/stockNotifications'
 import { getProductImages, formatPrice } from '../utils/productHelpers'
 
 import { useAuth } from '../context/AuthContext'
@@ -53,6 +54,8 @@ const ProductDetail = () => {
   const [showSticky, setShowSticky] = useState(false)
   const [flyAnim, setFlyAnim] = useState(false)
   const [buyNowLoading, setBuyNowLoading] = useState(false)
+  const [notifySubscribed, setNotifySubscribed] = useState(false)
+  const [notifyLoading, setNotifyLoading] = useState(false)
   const cartBtnRef = useRef(null)
   const { authenticated } = useAuth()
   const { addItem } = useCart()
@@ -85,6 +88,10 @@ const ProductDetail = () => {
       setAvgRating(list.length ? list.reduce((s, r) => s + r.rating, 0) / list.length : 0)
     }).catch(() => { })
   }, [product])
+
+  useEffect(() => {
+    setNotifySubscribed(false)
+  }, [selectedVariant?.id])
 
   useEffect(() => {
     const onScroll = () => {
@@ -141,6 +148,28 @@ const ProductDetail = () => {
       await toggleWishlist(product.id)
     } catch {
       showToast('Could not update wishlist')
+    }
+  }
+
+  const handleNotifyMe = async () => {
+    if (!authenticated) {
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
+      return
+    }
+    if (!selectedVariant) return
+    setNotifyLoading(true)
+    try {
+      await subscribeStockNotification(selectedVariant.id)
+      setNotifySubscribed(true)
+      showToast("We'll notify you when this is back in stock")
+    } catch (err) {
+      if (err.response?.status === 400) {
+        setNotifySubscribed(true)
+      } else {
+        showToast('Could not set up notification')
+      }
+    } finally {
+      setNotifyLoading(false)
     }
   }
 
@@ -320,6 +349,23 @@ const ProductDetail = () => {
                   <>
                     <span className="w-2 h-2 rounded-full bg-red-500" />
                     <span className="text-red-600 font-medium">Out of Stock</span>
+                    {stock === 0 && (
+                      <button
+                        onClick={handleNotifyMe}
+                        disabled={notifyLoading || notifySubscribed}
+                        className="ml-2 flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 disabled:opacity-70"
+                      >
+                        {notifySubscribed ? (
+                          <>
+                            <FiCheckCircle size={13} /> We'll notify you
+                          </>
+                        ) : (
+                          <>
+                            <FiBell size={13} /> {notifyLoading ? 'Please wait...' : 'Notify me when available'}
+                          </>
+                        )}
+                      </button>
+                    )}
                   </>
                 )}
               </div>
