@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
 import Logo from '../components/Logo'
 import { useAuth } from '../context/AuthContext'
 
 const Login = () => {
   const { login } = useAuth()
+  const [searchParams] = useSearchParams()
   const [form, setForm] = useState({ username: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
@@ -20,7 +22,8 @@ const Login = () => {
     setLoading(true)
     try {
       await login(form.username, form.password)
-      window.location.href = '/'
+      const redirectTo = searchParams.get('redirect') || '/'
+      window.location.href = redirectTo
     } catch {
       setError('Invalid username or password')
     } finally {

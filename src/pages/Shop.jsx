@@ -13,9 +13,13 @@ import { getProducts } from '../api/products'
 const Shop = () => {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [count, setCount] = useState(0)
+  const [hasNext, setHasNext] = useState(false)
+  const [hasPrevious, setHasPrevious] = useState(false)
   const [page, setPage] = useState(1)
+  const [retryKey, setRetryKey] = useState(0)
   const [searchParams] = useSearchParams()
   const [filters, setFilters] = useState({
     category: searchParams.get('category') || '',
@@ -29,6 +33,7 @@ const Shop = () => {
 
   useEffect(() => {
     setLoading(true)
+    setError(false)
     const params = { page }
     Object.entries(filters).forEach(([key, value]) => {
       if (value) params[key] = value
@@ -38,10 +43,18 @@ const Shop = () => {
       .then((data) => {
         setProducts(data.results || data)
         setCount(data.count || (data.results || data).length)
+        setHasNext(Boolean(data.next))
+        setHasPrevious(Boolean(data.previous))
       })
-      .catch(() => setProducts([]))
+      .catch(() => {
+        setProducts([])
+        setCount(0)
+        setHasNext(false)
+        setHasPrevious(false)
+        setError(true)
+      })
       .finally(() => setLoading(false))
-  }, [filters, page])
+  }, [filters, page, retryKey])
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters)
@@ -108,6 +121,16 @@ const Shop = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {loading ? (
                 <ProductGridSkeleton count={9} />
+              ) : error ? (
+                <div className="col-span-full text-center py-10">
+                  <p className="text-sm text-slate-500 mb-3">Something went wrong loading products.</p>
+                  <button
+                    onClick={() => setRetryKey((k) => k + 1)}
+                    className="text-sm font-medium text-blue-600 hover:underline"
+                  >
+                    Try again
+                  </button>
+                </div>
               ) : products.length === 0 ? (
                 <p className="col-span-full text-sm text-slate-400 py-10 text-center">
                   No products found matching your filters.
@@ -117,19 +140,19 @@ const Shop = () => {
               )}
             </div>
 
-            {count > 12 && (
+            {(hasNext || hasPrevious) && (
               <div className="flex items-center justify-center gap-2 mt-10">
                 <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
+                  onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                  disabled={!hasPrevious}
                   className="px-4 py-2 rounded-full border border-slate-200 text-sm disabled:opacity-40 hover:border-blue-500 transition-all duration-300"
                 >
                   Previous
                 </button>
                 <span className="text-sm text-slate-500">Page {page}</span>
                 <button
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={products.length < 12}
+                  onClick={() => { setPage((p) => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                  disabled={!hasNext}
                   className="px-4 py-2 rounded-full border border-slate-200 text-sm disabled:opacity-40 hover:border-blue-500 transition-all duration-300"
                 >
                   Next

@@ -14,4 +14,22 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      const isAuthEndpoint = error.config?.url?.includes('/token/')
+      if (!isAuthEndpoint) {
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('refresh_token')
+        const currentPath = window.location.pathname + window.location.search
+        if (window.location.pathname !== '/login') {
+          window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`
+        }
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
 export default api

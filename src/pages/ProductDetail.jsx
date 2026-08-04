@@ -97,6 +97,10 @@ const ProductDetail = () => {
   }, [])
 
   const handleAddToCart = async () => {
+    if (!authenticated) {
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
+      return
+    }
     if (!selectedVariant) return
     try {
       await addItem(selectedVariant.id, quantity)
@@ -106,13 +110,13 @@ const ProductDetail = () => {
       setTimeout(() => setAdded(false), 1500)
       setTimeout(() => setFlyAnim(false), 700)
     } catch {
-      showToast('Please login to add items to cart')
+      showToast('Could not add this item to cart')
     }
   }
 
   const handleBuyNow = async () => {
     if (!authenticated) {
-      navigate('/login')
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
       return
     }
     if (!selectedVariant) return
@@ -122,17 +126,21 @@ const ProductDetail = () => {
       const cartItem = data.items.find((i) => i.variant.id === selectedVariant.id)
       navigate('/checkout', { state: cartItem ? { buyNowItemIds: [cartItem.id] } : undefined })
     } catch {
-      showToast('Please login to buy this product')
+      showToast('Could not process this order')
     } finally {
       setBuyNowLoading(false)
     }
   }
 
   const handleWishlistToggle = async () => {
+    if (!authenticated) {
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
+      return
+    }
     try {
       await toggleWishlist(product.id)
     } catch {
-      showToast('Please login to use wishlist')
+      showToast('Could not update wishlist')
     }
   }
 

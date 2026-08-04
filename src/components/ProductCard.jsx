@@ -1,19 +1,26 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { FiHeart, FiShoppingCart } from 'react-icons/fi'
 import { getProductImage, getProductPrice, formatPrice } from '../utils/productHelpers'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
+import { useAuth } from '../context/AuthContext'
 import { useToast } from './Toast'
 
 const ProductCard = ({ product, dark = false, badge }) => {
+  const { authenticated } = useAuth()
   const { addItem } = useCart()
   const { isWishlisted, toggleWishlist } = useWishlist()
   const { showToast } = useToast()
+  const navigate = useNavigate()
   const [added, setAdded] = useState(false)
 
   const handleAddToCart = async (e) => {
     e.preventDefault()
+    if (!authenticated) {
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
+      return
+    }
     const variantId = product.variants?.[0]?.id
     if (!variantId) {
       showToast('This product is not available right now')
@@ -25,16 +32,20 @@ const ProductCard = ({ product, dark = false, badge }) => {
       showToast('Added to cart')
       setTimeout(() => setAdded(false), 1200)
     } catch {
-      showToast('Please login to add items to cart')
+      showToast('Could not add this item to cart')
     }
   }
 
   const handleWishlistToggle = async (e) => {
     e.preventDefault()
+    if (!authenticated) {
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
+      return
+    }
     try {
       await toggleWishlist(product.id)
     } catch {
-      showToast('Please login to use wishlist')
+      showToast('Could not update wishlist')
     }
   }
 

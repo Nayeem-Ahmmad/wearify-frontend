@@ -11,19 +11,32 @@ import { getDeals } from '../api/products'
 const DealsPage = () => {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [count, setCount] = useState(0)
+  const [hasNext, setHasNext] = useState(false)
+  const [hasPrevious, setHasPrevious] = useState(false)
   const [page, setPage] = useState(1)
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     setLoading(true)
+    setError(false)
     getDeals({ page })
       .then((data) => {
         setProducts(data.results || data)
         setCount(data.count || (data.results || data).length)
+        setHasNext(Boolean(data.next))
+        setHasPrevious(Boolean(data.previous))
       })
-      .catch(() => setProducts([]))
+      .catch(() => {
+        setProducts([])
+        setCount(0)
+        setHasNext(false)
+        setHasPrevious(false)
+        setError(true)
+      })
       .finally(() => setLoading(false))
-  }, [page])
+  }, [page, retryKey])
 
   return (
     <div className="min-h-screen bg-white">
@@ -47,6 +60,13 @@ const DealsPage = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {loading ? (
             <ProductGridSkeleton count={12} />
+          ) : error ? (
+            <div className="col-span-full text-center py-16">
+              <p className="text-sm text-slate-500 mb-3">Something went wrong loading deals.</p>
+              <button onClick={() => setRetryKey((k) => k + 1)} className="text-sm font-medium text-blue-600 hover:underline">
+                Try again
+              </button>
+            </div>
           ) : products.length === 0 ? (
             <div className="col-span-full text-center py-16">
               <FiZap className="mx-auto text-slate-300 mb-4" size={40} />
@@ -66,19 +86,19 @@ const DealsPage = () => {
           )}
         </div>
 
-        {count > 12 && (
+        {(hasNext || hasPrevious) && (
           <div className="flex items-center justify-center gap-2 mt-10">
             <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
+              onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+              disabled={!hasPrevious}
               className="px-4 py-2 rounded-full border border-slate-200 text-sm disabled:opacity-40 hover:border-orange-500 transition-all duration-300"
             >
               Previous
             </button>
             <span className="text-sm text-slate-500">Page {page}</span>
             <button
-              onClick={() => setPage((p) => p + 1)}
-              disabled={products.length < 12}
+              onClick={() => { setPage((p) => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+              disabled={!hasNext}
               className="px-4 py-2 rounded-full border border-slate-200 text-sm disabled:opacity-40 hover:border-orange-500 transition-all duration-300"
             >
               Next
