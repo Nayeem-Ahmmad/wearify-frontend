@@ -26,6 +26,9 @@ import FAQPage from './pages/FAQ'
 import Help from './pages/Help'
 import TrackOrder from './pages/TrackOrder'
 import ShippingInfo from './pages/ShippingInfo'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
+
 
 function App() {
   return (
@@ -60,6 +63,9 @@ function App() {
                 <Route path="/help" element={<Help />} />
                 <Route path="/track-order" element={<TrackOrder />} />
                 <Route path="/shipping-info" element={<ShippingInfo />} />
+
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
               </Routes>
             </BrowserRouter>
           </WishlistProvider>

@@ -149,6 +149,8 @@ const Account = () => {
             const updated = await updateProfile(profile.id, formData)
             setProfile(updated)
             setAvatarFile(null)
+            if (avatarPreview) URL.revokeObjectURL(avatarPreview)
+            setAvatarPreview(null)
         } catch {
             showToast('Could not update profile')
         } finally {

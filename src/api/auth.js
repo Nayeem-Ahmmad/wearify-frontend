@@ -20,3 +20,13 @@ export const logoutUser = () => {
 export const isAuthenticated = () => {
   return !!localStorage.getItem('access_token')
 }
+
+export const requestPasswordReset = async (email) => {
+  const response = await api.post('/shop/password-reset/request/', { email })
+  return response.data
+}
+
+export const confirmPasswordReset = async (uid, token, newPassword) => {
+  const response = await api.post('/shop/password-reset/confirm/', { uid, token, new_password: newPassword })
+  return response.data
+}

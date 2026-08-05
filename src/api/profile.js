@@ -7,9 +7,7 @@ export const getMyProfile = async () => {
 }
 
 export const updateProfile = async (id, formData) => {
-  const response = await api.patch(`/shop/profile/${id}/`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  const response = await api.patch(`/shop/profile/${id}/`, formData)
   return response.data
 }
 

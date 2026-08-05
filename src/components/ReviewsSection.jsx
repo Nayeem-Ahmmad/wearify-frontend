@@ -134,6 +134,8 @@ const ReviewsSection = ({ productId }) => {
           {reviews.map((r) => (
             <div key={r.id} className="pb-5 border-b border-slate-100 last:border-0">
               <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-sm font-semibold text-slate-800">{r.user_name}</span>
+                <span className="text-slate-300">•</span>
                 <div className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <FiStar

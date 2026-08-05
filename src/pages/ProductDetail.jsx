@@ -1,9 +1,12 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+
 import {
-  FiHeart, FiShoppingCart, FiChevronRight, FiCheck, FiZoomIn, FiX,
-  FiTruck, FiRefreshCw, FiShield, FiChevronDown,
+  FiHeart, FiShare2, FiShoppingCart, FiChevronRight, FiCheck, FiZoomIn, FiX,
+  FiTruck, FiRefreshCw, FiShield, FiCreditCard, FiPackage, FiBell, FiCheckCircle,
 } from 'react-icons/fi'
+
+import { subscribeStockNotification } from '../api/stockNotifications'
 import TopBar from '../components/TopBar'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -20,17 +23,18 @@ import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 
-const trustBadges = [
-  { icon: FiShield, label: 'Secure Payment' },
-  { icon: FiRefreshCw, label: '7 Days Return', comingSoon: true },
-  { icon: FiCheck, label: 'Original Product' },
-  { icon: FiTruck, label: 'Fast Delivery' },
-]
+const SIZE_ORDER = ['S', 'M', 'L', 'XL', 'XXL']
 
 const deliveryInfo = [
-  { title: 'Delivery Time', desc: 'Usually delivered within 3-5 business days inside Dhaka, 5-7 days outside Dhaka.' },
-  { title: 'Free Shipping', desc: 'Free shipping on all orders over ৳2000.' },
-  { title: 'Cash on Delivery', desc: 'Cash on Delivery is available across Bangladesh.' },
+  { icon: FiTruck, title: 'Delivery Time', desc: 'Usually delivered within 3-5 business days inside Dhaka, 5-7 days outside Dhaka.' },
+  { icon: FiCreditCard, title: 'Shipping Charge', desc: '৳60 inside Dhaka, ৳130 outside Dhaka — free over ৳2,500.' },
+  { icon: FiPackage, title: 'Cash on Delivery', desc: 'Cash on Delivery is available across Bangladesh.' },
+]
+
+const returnInfo = [
+  { icon: FiShield, title: 'Secure Payment', desc: 'COD & SSLCommerz (bKash, Nagad, cards)' },
+  { icon: FiRefreshCw, title: '7 Days Return', desc: 'Coming soon', comingSoon: true },
+  { icon: FiCheck, title: 'Original Product', desc: '100% authentic, quality checked' },
 ]
 
 const ProductDetail = () => {
@@ -49,10 +53,12 @@ const ProductDetail = () => {
   const [isZooming, setIsZooming] = useState(false)
   const [fullscreen, setFullscreen] = useState(false)
   const [activeTab, setActiveTab] = useState('description')
-  const [openAccordion, setOpenAccordion] = useState(0)
   const [showSticky, setShowSticky] = useState(false)
   const [flyAnim, setFlyAnim] = useState(false)
   const [buyNowLoading, setBuyNowLoading] = useState(false)
+  const [notifyVariant, setNotifyVariant] = useState(null)
+  const [notifyLoading, setNotifyLoading] = useState(false)
+  const [subscribedVariantIds, setSubscribedVariantIds] = useState(new Set())
   const cartBtnRef = useRef(null)
   const { authenticated } = useAuth()
   const { addItem } = useCart()
@@ -96,7 +102,13 @@ const ProductDetail = () => {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  const redirectToLogin = () => navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
+
   const handleAddToCart = async () => {
+    if (!authenticated) {
+      redirectToLogin()
+      return
+    }
     if (!selectedVariant) return
     try {
       await addItem(selectedVariant.id, quantity)
@@ -106,13 +118,13 @@ const ProductDetail = () => {
       setTimeout(() => setAdded(false), 1500)
       setTimeout(() => setFlyAnim(false), 700)
     } catch {
-      showToast('Please login to add items to cart')
+      showToast('Could not add this item to cart')
     }
   }
 
   const handleBuyNow = async () => {
     if (!authenticated) {
-      navigate('/login')
+      redirectToLogin()
       return
     }
     if (!selectedVariant) return
@@ -122,17 +134,35 @@ const ProductDetail = () => {
       const cartItem = data.items.find((i) => i.variant.id === selectedVariant.id)
       navigate('/checkout', { state: cartItem ? { buyNowItemIds: [cartItem.id] } : undefined })
     } catch {
-      showToast('Please login to buy this product')
+      showToast('Could not process this order')
     } finally {
       setBuyNowLoading(false)
     }
   }
 
   const handleWishlistToggle = async () => {
+    if (!authenticated) {
+      redirectToLogin()
+      return
+    }
     try {
       await toggleWishlist(product.id)
     } catch {
-      showToast('Please login to use wishlist')
+      showToast('Could not update wishlist')
+    }
+  }
+
+  const handleShare = async () => {
+    const url = window.location.href
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: product.name, url })
+      } catch {
+        // user cancelled the share sheet — nothing to do
+      }
+    } else {
+      await navigator.clipboard.writeText(url)
+      showToast('Link copied to clipboard')
     }
   }
 
@@ -148,13 +178,14 @@ const ProductDetail = () => {
       <div className="min-h-screen bg-white">
         <TopBar />
         <Navbar />
-        <div className="max-w-6xl mx-auto px-4 py-16 grid md:grid-cols-2 gap-10 animate-pulse">
-          <div className="aspect-square bg-slate-200 rounded-2xl max-w-md" />
+        <div className="max-w-7xl mx-auto px-4 py-16 grid lg:grid-cols-[420px_1fr_300px] gap-8 animate-pulse">
+          <div className="aspect-[4/5] bg-slate-200 rounded-2xl" />
           <div className="space-y-4">
             <div className="h-6 bg-slate-200 rounded w-2/3" />
             <div className="h-4 bg-slate-200 rounded w-1/3" />
             <div className="h-24 bg-slate-200 rounded" />
           </div>
+          <div className="h-64 bg-slate-200 rounded-2xl" />
         </div>
         <Footer />
       </div>
@@ -189,24 +220,28 @@ const ProductDetail = () => {
   const stock = selectedVariant ? selectedVariant.stock_quantity : null
   const inStock = stock === null || stock > 0
 
+  const sizes = product.variants
+    ? [...new Set(product.variants.map((v) => v.size).filter(Boolean))]
+      .sort((a, b) => SIZE_ORDER.indexOf(a) - SIZE_ORDER.indexOf(b))
+    : []
   const colors = product.variants
     ? [...new Set(product.variants.map((v) => v.color).filter(Boolean))]
     : []
 
-  // Sizes are scoped to the currently selected color (Daraz-style) — if the
-  // selected color has no matching variants (or no color chosen yet), fall
-  // back to every size across all variants.
-  const sizesForColor = selectedVariant?.color
-    ? [...new Set(
-      product.variants
-        .filter((v) => v.color === selectedVariant.color)
-        .map((v) => v.size)
-        .filter(Boolean)
-    )]
-    : []
-  const sizes = sizesForColor.length > 0
-    ? sizesForColor
-    : (product.variants ? [...new Set(product.variants.map((v) => v.size).filter(Boolean))] : [])
+  // A size counts as available only if the *currently selected color* has a
+  // variant for it with stock — otherwise it's shown greyed out, Daraz-style,
+  // instead of being hidden entirely.
+  const isSizeAvailable = (size) => {
+    if (!selectedVariant?.color) return true
+    return product.variants.some(
+      (v) => v.color === selectedVariant.color && v.size === size && v.stock_quantity > 0
+    )
+  }
+
+  const colorSwatchImage = (color) => {
+    const found = imagesWithColor.find((img) => img.color === color)
+    return found ? found.url : null
+  }
 
   // Clicking a gallery photo selects the color it's tagged with (if any),
   // keeping the current size when that size still exists for the new color.
@@ -220,11 +255,57 @@ const ProductDetail = () => {
     if (match) setSelectedVariant(match)
   }
 
-  // Selecting a color (via the text swatches) also jumps the main photo to
-  // that color's tagged image, if one exists.
-  const jumpToColorImage = (color) => {
+  const selectColor = (color) => {
+    const match = product.variants.find(
+      (v) => v.color === color && v.size === selectedVariant?.size && v.stock_quantity > 0
+    )
+    setSelectedVariant(match || product.variants.find((v) => v.color === color))
     const idx = imagesWithColor.findIndex((img) => img.color === color)
     if (idx !== -1) setSelectedImage(idx)
+  }
+
+  const selectSize = (size) => {
+    if (!isSizeAvailable(size)) return
+    const match = product.variants.find(
+      (v) => v.size === size && (!selectedVariant?.color || v.color === selectedVariant.color)
+    )
+    setSelectedVariant(match || product.variants.find((v) => v.size === size))
+  }
+
+  const handleSizeClick = (size) => {
+    if (isSizeAvailable(size)) {
+      selectSize(size)
+      return
+    }
+    const target =
+      product.variants.find((v) => v.color === selectedVariant?.color && v.size === size) ||
+      product.variants.find((v) => v.size === size)
+    if (target) setNotifyVariant(target)
+  }
+
+  const handleNotifySubscribe = async () => {
+    if (!authenticated) {
+      setNotifyVariant(null)
+      redirectToLogin()
+      return
+    }
+    if (!notifyVariant) return
+    setNotifyLoading(true)
+    try {
+      await subscribeStockNotification(notifyVariant.id)
+      setSubscribedVariantIds((prev) => new Set(prev).add(notifyVariant.id))
+      showToast("We'll notify you when this is back in stock")
+    } catch (err) {
+      if (err.response?.status === 400) {
+        setSubscribedVariantIds((prev) => new Set(prev).add(notifyVariant.id))
+        showToast("You're already subscribed for this item")
+      } else {
+        showToast('Could not set up notification')
+      }
+    } finally {
+      setNotifyLoading(false)
+      setNotifyVariant(null)
+    }
   }
 
   return (
@@ -232,28 +313,31 @@ const ProductDetail = () => {
       <TopBar />
       <Navbar />
 
-      <button
-        onClick={handleWishlistToggle}
-        className="fixed right-4 md:right-6 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white shadow-lg border border-slate-100 flex items-center justify-center hover:scale-125 transition-all duration-300"
-      >
-        <FiHeart size={20} className={isWishlisted(product.id) ? 'fill-red-500 text-red-500' : 'text-slate-400'} />
-      </button>
-
-      <div className="max-w-6xl mx-auto px-4 py-4">
-        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+      <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="flex items-center gap-1.5 text-xs text-slate-400 flex-wrap">
           <a href="/" className="hover:text-blue-600 transition-colors duration-300">Home</a>
           <FiChevronRight size={12} />
           <a href="/shop" className="hover:text-blue-600 transition-colors duration-300">Shop</a>
+          {product.category && (
+            <>
+              <FiChevronRight size={12} />
+              <a href={`/shop?category=${product.category.slug}`} className="hover:text-blue-600 transition-colors duration-300">
+                {product.category.name}
+              </a>
+            </>
+          )}
           <FiChevronRight size={12} />
           <span className="text-slate-600">{product.name}</span>
         </div>
       </div>
 
-      <section className="max-w-6xl mx-auto px-4 pb-8">
-        <div className="grid md:grid-cols-2 gap-10">
-          <div className="max-w-md mx-auto md:mx-0 w-full">
+      <section className="max-w-7xl mx-auto px-4 pb-8">
+        <div className="grid lg:grid-cols-[420px_1fr_300px] gap-8 items-start">
+
+          {/* Column 1 — Image gallery */}
+          <div className="w-full max-w-sm mx-auto lg:mx-0">
             <div
-              className="relative aspect-square rounded-2xl overflow-hidden bg-slate-100 mb-3 cursor-zoom-in"
+              className="relative h-[380px] flex items-center justify-center rounded-2xl overflow-hidden bg-#FFFFFF mb-3 cursor-zoom-in border border-slate-100"
               onMouseMove={handleMouseMove}
               onMouseEnter={() => setIsZooming(true)}
               onMouseLeave={() => setIsZooming(false)}
@@ -263,10 +347,10 @@ const ProductDetail = () => {
                 key={selectedImage}
                 src={images[selectedImage]}
                 alt={product.name}
-                className="w-full h-full object-contain transition-all duration-300 animate-fade-in"
+                className="w-full h-full object-contain scale-110 transition-all duration-300 animate-fade-in"
                 style={
                   isZooming
-                    ? { transform: 'scale(2)', transformOrigin: `${zoomPos.x}% ${zoomPos.y}%` }
+                    ? { transform: 'scale(1.8)', transformOrigin: `${zoomPos.x}% ${zoomPos.y}%` }
                     : {}
                 }
               />
@@ -278,28 +362,46 @@ const ProductDetail = () => {
             </div>
 
             {images.length > 1 && (
-              <div className="flex gap-2">
+              <div className="flex gap-2 overflow-x-auto pb-1">
                 {images.map((img, i) => (
                   <button
                     key={i}
                     onClick={() => handleImageClick(i)}
-                    className={`w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all duration-300 ${i === selectedImage ? 'border-blue-600' : 'border-transparent hover:border-slate-300'
+                    className={`w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 bg-slate-50 transition-all duration-300 ${i === selectedImage ? 'border-blue-600' : 'border-transparent hover:border-slate-300'
                       }`}
                   >
-                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    <img src={img} alt="" className="w-full h-full object-contain" />
                   </button>
                 ))}
               </div>
             )}
           </div>
 
+          {/* Column 2 — Details & purchase options */}
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex items-start justify-between gap-4 mb-1.5">
               {product.brand && (
                 <span className="text-xs font-medium text-blue-600 uppercase tracking-wide">
                   {product.brand.name}
                 </span>
               )}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={handleShare}
+                  className="w-9 h-9 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:border-slate-400 hover:text-slate-700 transition-all duration-300"
+                >
+                  <FiShare2 size={15} />
+                </button>
+                <button
+                  onClick={handleWishlistToggle}
+                  className="w-9 h-9 rounded-full border border-slate-200 flex items-center justify-center hover:border-red-300 transition-all duration-300"
+                >
+                  <FiHeart
+                    size={15}
+                    className={`transition-all duration-300 ${isWishlisted(product.id) ? 'fill-red-500 text-red-500 scale-110' : 'text-slate-400'}`}
+                  />
+                </button>
+              </div>
             </div>
 
             <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">{product.name}</h1>
@@ -314,7 +416,7 @@ const ProductDetail = () => {
                 onClick={() => setActiveTab('reviews')}
                 className="text-slate-500 hover:text-blue-600 transition-colors duration-300"
               >
-                {reviewCount} reviews
+                Ratings {reviewCount}
               </button>
             </div>
 
@@ -326,7 +428,7 @@ const ProductDetail = () => {
                     {formatPrice(originalPrice)}
                   </span>
                   <span className="text-xs font-bold text-white bg-red-500 px-2 py-1 rounded-full">
-                    Save {discountPercent}%
+                    -{discountPercent}%
                   </span>
                 </>
               )}
@@ -349,62 +451,62 @@ const ProductDetail = () => {
               </div>
             )}
 
-            <p className="text-sm text-slate-600 leading-relaxed mb-6">{product.description}</p>
-
-            {sizes.length > 0 && (
-              <div className="mb-5">
+            {colors.length > 0 && (
+              <div className="mb-6">
                 <p className="text-sm font-semibold text-slate-800 mb-2.5">
-                  Size
+                  Color Family
                   {selectedVariant?.color && (
-                    <span className="ml-2 text-xs font-normal text-slate-400">
-                      (available in {selectedVariant.color})
-                    </span>
+                    <span className="ml-2 font-normal text-slate-500">{selectedVariant.color}</span>
                   )}
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {sizes.map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => {
-                        const match = product.variants.find(
-                          (v) => v.size === size && (!selectedVariant?.color || v.color === selectedVariant.color)
-                        )
-                        setSelectedVariant(match || product.variants.find((v) => v.size === size))
-                      }}
-                      className={`min-w-[44px] h-11 px-3 rounded-lg border text-sm font-medium transition-all duration-300 hover:scale-105 ${selectedVariant?.size === size
-                        ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200'
-                        : 'border-slate-200 text-slate-700 hover:border-slate-400'
-                        }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+                <div className="flex flex-wrap gap-2.5">
+                  {colors.map((color) => {
+                    const swatchImg = colorSwatchImage(color)
+                    const isSelected = selectedVariant?.color === color
+                    return (
+                      <button
+                        key={color}
+                        title={color}
+                        onClick={() => selectColor(color)}
+                        className={`w-14 h-14 rounded-lg overflow-hidden border-2 shrink-0 transition-all duration-300 hover:scale-105 ${isSelected ? 'border-blue-600 ring-2 ring-blue-100' : 'border-slate-200 hover:border-slate-400'
+                          }`}
+                      >
+                        {swatchImg ? (
+                          <img src={swatchImg} alt={color} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-slate-50 flex items-center justify-center text-[10px] font-medium text-slate-600 px-1 text-center leading-tight">
+                            {color}
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             )}
 
-            {colors.length > 0 && (
-              <div className="mb-6">
-                <p className="text-sm font-semibold text-slate-800 mb-2.5">Color</p>
+            {sizes.length > 0 && (
+              <div className="mb-5">
+                <p className="text-sm font-semibold text-slate-800 mb-2.5">Size</p>
                 <div className="flex flex-wrap gap-2">
-                  {colors.map((color) => (
-                    <button
-                      key={color}
-                      onClick={() => {
-                        const match = product.variants.find(
-                          (v) => v.color === color && (!selectedVariant?.size || v.size === selectedVariant.size)
-                        )
-                        setSelectedVariant(match || product.variants.find((v) => v.color === color))
-                        jumpToColorImage(color)
-                      }}
-                      className={`px-4 h-11 rounded-lg border text-sm font-medium transition-all duration-300 hover:scale-105 ${selectedVariant?.color === color
-                        ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200'
-                        : 'border-slate-200 text-slate-700 hover:border-slate-400'
-                        }`}
-                    >
-                      {color}
-                    </button>
-                  ))}
+                  {sizes.map((size) => {
+                    const available = isSizeAvailable(size)
+                    const isSelected = selectedVariant?.size === size
+                    return (
+                      <button
+                        key={size}
+                        onClick={() => handleSizeClick(size)}
+                        className={`min-w-[44px] h-11 px-3 rounded-lg border text-sm font-medium transition-all duration-300 ${!available
+                          ? 'border-slate-100 text-slate-300 bg-slate-50 hover:border-blue-300 hover:text-blue-400'
+                          : isSelected
+                            ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200 hover:scale-105'
+                            : 'border-slate-200 text-slate-700 hover:border-slate-400 hover:scale-105'
+                          }`}
+                      >
+                        {size}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -432,11 +534,22 @@ const ProductDetail = () => {
 
             <div ref={cartBtnRef} className="flex items-center gap-3 relative">
               <button
+                onClick={handleBuyNow}
+                disabled={!inStock || buyNowLoading}
+                className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
+              >
+                {buyNowLoading && (
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                )}
+                {buyNowLoading ? 'Processing...' : 'Buy Now'}
+              </button>
+
+              <button
                 onClick={handleAddToCart}
                 disabled={!inStock}
-                className={`relative flex-1 flex items-center justify-center gap-2 py-3.5 rounded-full font-medium transition-all duration-300 overflow-hidden ${added
+                className={`relative flex-1 flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold transition-all duration-300 overflow-hidden ${added
                   ? 'bg-green-500 text-white'
-                  : 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02] active:scale-95'
+                  : 'bg-orange-500 text-white hover:bg-orange-600 hover:scale-[1.02] active:scale-95'
                   } disabled:opacity-50 disabled:hover:scale-100`}
               >
                 {added ? <FiCheck size={18} /> : <FiShoppingCart size={18} />}
@@ -448,64 +561,46 @@ const ProductDetail = () => {
                   />
                 )}
               </button>
-
-              <button
-                onClick={handleBuyNow}
-                disabled={!inStock || buyNowLoading}
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-full font-medium border-2 border-blue-600 text-blue-600 hover:bg-blue-50 active:scale-95 transition-all duration-300 disabled:opacity-50"
-              >
-                {buyNowLoading && (
-                  <span className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                )}
-                {buyNowLoading ? 'Processing...' : 'Buy Now'}
-              </button>
-
-              <button
-                onClick={handleWishlistToggle}
-                className="w-14 h-14 rounded-full border border-slate-200 flex items-center justify-center hover:border-red-300 transition-all duration-300 shrink-0"
-              >
-                <FiHeart
-                  size={20}
-                  className={`transition-all duration-300 ${isWishlisted(product.id) ? 'fill-red-500 text-red-500 scale-110' : 'text-slate-400'}`}
-                />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mt-6">
-              {trustBadges.map(({ icon: Icon, label, comingSoon }) => (
-                <div key={label} className="flex items-center gap-2 text-xs text-slate-600">
-                  <Icon size={15} className="text-blue-600 shrink-0" />
-                  <span>{label}</span>
-                  {comingSoon && (
-                    <span className="text-[9px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full">Soon</span>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 border border-slate-100 rounded-2xl divide-y divide-slate-100">
-              {deliveryInfo.map((item, i) => (
-                <div key={item.title}>
-                  <button
-                    onClick={() => setOpenAccordion(openAccordion === i ? -1 : i)}
-                    className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-700"
-                  >
-                    {item.title}
-                    <FiChevronDown
-                      size={16}
-                      className={`transition-transform duration-300 ${openAccordion === i ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-                  <div
-                    className={`overflow-hidden transition-all duration-300 ${openAccordion === i ? 'max-h-24' : 'max-h-0'
-                      }`}
-                  >
-                    <p className="px-4 pb-3 text-xs text-slate-500">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
+
+          {/* Column 3 — Delivery & return sidebar */}
+          <aside className="w-full lg:sticky lg:top-24 space-y-4">
+            <div className="border border-slate-100 rounded-2xl p-5">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Delivery Options</p>
+              <div className="divide-y divide-slate-50">
+                {deliveryInfo.map(({ icon: Icon, title, desc }) => (
+                  <div key={title} className="flex items-start gap-3 py-2.5 first:pt-0 last:pb-0">
+                    <Icon size={16} className="text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-slate-800">{title}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border border-slate-100 rounded-2xl p-5">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Return & Warranty</p>
+              <div className="divide-y divide-slate-50">
+                {returnInfo.map(({ icon: Icon, title, desc, comingSoon }) => (
+                  <div key={title} className="flex items-start gap-3 py-2.5 first:pt-0 last:pb-0">
+                    <Icon size={16} className="text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-slate-800 flex items-center gap-1.5">
+                        {title}
+                        {comingSoon && (
+                          <span className="text-[9px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full">Soon</span>
+                        )}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5">{desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </aside>
         </div>
 
         <div className="mt-14 border-b border-slate-100">
@@ -572,8 +667,49 @@ const ProductDetail = () => {
           <img
             src={images[selectedImage]}
             alt={product.name}
-            className="max-w-full max-h-full object-contain animate-scale-in"
+            className="w-full h-full object-contain animate-scale-in"
           />
+        </div>
+      )}
+
+      {notifyVariant && (
+        <div
+          className="fixed inset-0 z-[200] bg-black/40 flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setNotifyVariant(null)}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-14 h-14 mx-auto rounded-full bg-blue-50 flex items-center justify-center mb-4">
+              <FiBell className="text-blue-500" size={22} />
+            </div>
+            <h3 className="font-semibold text-slate-900 mb-1">
+              {notifyVariant.color} / {notifyVariant.size} is out of stock
+            </h3>
+            <p className="text-sm text-slate-500 mb-5">
+              We'll email you as soon as this is available again.
+            </p>
+            {subscribedVariantIds.has(notifyVariant.id) ? (
+              <div className="flex items-center justify-center gap-2 text-green-600 font-medium text-sm py-3">
+                <FiCheckCircle size={16} /> You're on the list
+              </div>
+            ) : (
+              <button
+                onClick={handleNotifySubscribe}
+                disabled={notifyLoading}
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-full font-medium hover:shadow-lg hover:shadow-blue-200 transition-all duration-300 disabled:opacity-60"
+              >
+                {notifyLoading ? 'Please wait...' : 'Notify Me'}
+              </button>
+            )}
+            <button
+              onClick={() => setNotifyVariant(null)}
+              className="mt-3 text-sm text-slate-400 hover:text-slate-600"
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
     </div>

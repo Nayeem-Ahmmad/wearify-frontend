@@ -10,6 +10,7 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [agreed, setAgreed] = useState(false)
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -19,23 +20,28 @@ const Register = () => {
     e.preventDefault()
     setError('')
 
+    if (!agreed) {
+      setError('Please agree to the Terms & Conditions and Privacy Policy to continue')
+      return
+    }
+
     if (form.password !== form.confirmPassword) {
-        setError('Passwords do not match')
-        return
+      setError('Passwords do not match')
+      return
     }
 
     setLoading(true)
     try {
-        await registerUser(form.username, form.email, form.password)
-        window.location.href = '/login'
+      await registerUser(form.username, form.email, form.password)
+      window.location.href = '/login'
     } catch (err) {
-        const data = err.response?.data
-        const message = data ? Object.values(data).flat().join(' ') : 'Registration failed'
-        setError(message)
+      const data = err.response?.data
+      const message = data ? Object.values(data).flat().join(' ') : 'Registration failed'
+      setError(message)
     } finally {
-        setLoading(false)
+      setLoading(false)
     }
-}
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4 py-10">
@@ -113,9 +119,28 @@ const Register = () => {
             />
           </div>
 
+          <label className="flex items-start gap-2.5 text-xs text-slate-600 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+              className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 shrink-0"
+            />
+            <span>
+              I agree to Wearify's{' '}
+              <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-medium hover:underline">
+                Terms & Conditions
+              </a>{' '}
+              and{' '}
+              <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-medium hover:underline">
+                Privacy Policy
+              </a>
+            </span>
+          </label>
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !agreed}
             className="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 hover:scale-[1.02] transition-all duration-300 disabled:opacity-60 disabled:hover:scale-100"
           >
             {loading ? 'Creating Account...' : 'Create Account'}
