@@ -23,7 +23,7 @@ const RecentlyViewed = ({ excludeSlug }) => {
   return (
     <div className="mt-16">
       <h2 className="text-xl font-bold text-slate-900 mb-5">Recently Viewed</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
         {items.map((p) => (
           <ProductCard key={p.slug} product={p} />
         ))}

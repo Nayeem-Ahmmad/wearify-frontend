@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiCheckCircle, FiXCircle, FiAlertTriangle, FiHome, FiRefreshCw, FiShoppingBag } from 'react-icons/fi'
+import { FiCheckCircle, FiXCircle, FiAlertTriangle, FiHome, FiRefreshCw, FiShoppingBag, FiPackage } from 'react-icons/fi'
 import TopBar from '../components/TopBar'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -178,6 +178,14 @@ const PaymentResult = ({ type }) => {
                                 >
                                     <FiHome size={16} /> Continue Shopping
                                 </a>
+                                {order && type === 'success' && (
+                                    <a
+                                        href={`/order-confirmation?order_id=${order.id}`}
+                                        className="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-6 py-3 rounded-full font-medium hover:border-blue-300 hover:text-blue-600 transition-all duration-300"
+                                    >
+                                        <FiPackage size={16} /> Track Order
+                                    </a>
+                                )}
                                 <a
                                     href="/orders"
                                     className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-medium hover:shadow-lg hover:shadow-blue-200 hover:scale-105 transition-all duration-300"

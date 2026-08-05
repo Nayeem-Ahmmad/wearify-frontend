@@ -62,10 +62,10 @@ const ProductCard = ({ product, dark = false, badge }) => {
   return (
     <Link
       to={`/products/${product.slug}`}
-      className={`group relative block min-w-0 rounded-2xl overflow-hidden border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}
+      className={`group relative block min-w-0 rounded-xl overflow-hidden border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}
     >
       {badge && (
-        <span className="absolute top-3 left-3 z-10 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-full">
+        <span className="absolute top-2 left-2 z-10 bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
           {badge}
         </span>
       )}
@@ -73,37 +73,37 @@ const ProductCard = ({ product, dark = false, badge }) => {
       <button
         type="button"
         onClick={handleWishlistToggle}
-        className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center hover:scale-110 transition-transform duration-300"
+        className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center hover:scale-110 transition-transform duration-300"
       >
         <FiHeart
-          size={16}
+          size={13}
           className={`transition-all duration-300 ${isWishlisted(product.id) ? 'fill-red-500 text-red-500 scale-110' : 'text-slate-600'}`}
         />
       </button>
 
-      <div className="aspect-square overflow-hidden bg-slate-100">
+      <div className="aspect-square overflow-hidden bg-white flex items-center justify-center p-1">
         <img
           src={image}
           alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-500"
         />
       </div>
 
-      <div className="p-3">
-        <p className={`text-sm font-medium truncate ${dark ? 'text-white' : 'text-slate-800'}`}>
+      <div className="p-2">
+        <p className={`text-xs font-medium truncate ${dark ? 'text-white' : 'text-slate-800'}`}>
           {product.name}
         </p>
 
-        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-          <span className={`font-bold ${dark ? 'text-white' : 'text-slate-900'}`}>
+        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+          <span className={`text-sm font-bold ${dark ? 'text-white' : 'text-slate-900'}`}>
             {formatPrice(price)}
           </span>
           {hasDiscount && (
             <>
-              <span className={`text-xs font-medium line-through decoration-2 decoration-orange-400 text-orange-500`}>
+              <span className={`text-xs font-medium line-through decoration-1 decoration-orange-400 text-orange-500`}>
                 {formatPrice(originalPrice)}
               </span>
-              <span className="text-[10px] font-bold text-white bg-red-500 px-1.5 py-0.5 rounded-full">
+              <span className="text-[9px] font-bold text-white bg-red-500 px-1 py-0.5 rounded-full">
                 -{discountPercent}%
               </span>
             </>
@@ -113,9 +113,9 @@ const ProductCard = ({ product, dark = false, badge }) => {
         <button
           type="button"
           onClick={handleAddToCart}
-          className={`mt-3 w-full flex items-center justify-center gap-1.5 text-xs font-medium py-2 rounded-full transition-all duration-300 ${added ? 'bg-green-500 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+          className={`mt-2 w-full flex items-center justify-center gap-1 text-[11px] font-bold py-1.5 rounded-full transition-all duration-300 ${added ? 'bg-green-500 text-white' : 'bg-orange-600 text-white hover:bg-green-700'}`}
         >
-          <FiShoppingCart size={14} />
+          <FiShoppingCart size={12} />
           {added ? 'Added!' : 'Add to Cart'}
         </button>
       </div>

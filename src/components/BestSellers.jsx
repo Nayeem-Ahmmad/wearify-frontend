@@ -8,7 +8,7 @@ const BestSellers = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getProducts({ page_size: 4 })
+    getProducts({ page_size: 6 })
       .then((data) => setProducts(data.results || data))
       .catch(() => setProducts([]))
       .finally(() => setLoading(false))
@@ -23,9 +23,9 @@ const BestSellers = () => {
         </a>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
         {loading ? (
-          <ProductGridSkeleton count={4} />
+          <ProductGridSkeleton count={6} />
         ) : products.length === 0 ? (
           <p className="col-span-full text-sm text-slate-400">No products available yet.</p>
         ) : (

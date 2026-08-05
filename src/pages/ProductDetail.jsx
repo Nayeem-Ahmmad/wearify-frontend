@@ -25,6 +25,13 @@ import { useWishlist } from '../context/WishlistContext'
 
 const SIZE_ORDER = ['S', 'M', 'L', 'XL', 'XXL']
 
+const truncateWords = (text, wordLimit = 25) => {
+  if (!text) return ''
+  const words = text.split(' ')
+  if (words.length <= wordLimit) return text
+  return words.slice(0, wordLimit).join(' ') + '...'
+}
+
 const deliveryInfo = [
   { icon: FiTruck, title: 'Delivery Time', desc: 'Usually delivered within 3-5 business days inside Dhaka, 5-7 days outside Dhaka.' },
   { icon: FiCreditCard, title: 'Shipping Charge', desc: '৳60 inside Dhaka, ৳130 outside Dhaka — free over ৳2,500.' },
@@ -337,7 +344,7 @@ const ProductDetail = () => {
           {/* Column 1 — Image gallery */}
           <div className="w-full max-w-sm mx-auto lg:mx-0">
             <div
-              className="relative h-[380px] flex items-center justify-center rounded-2xl overflow-hidden bg-#FFFFFF mb-3 cursor-zoom-in border border-slate-100"
+              className="relative h-[380px] flex items-center justify-center rounded-2xl overflow-hidden bg-#FFFFFF mb-3 cursor-zoom-in"
               onMouseMove={handleMouseMove}
               onMouseEnter={() => setIsZooming(true)}
               onMouseLeave={() => setIsZooming(false)}
@@ -404,7 +411,7 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">{product.name}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">{truncateWords(product.name, 10)}</h1>
 
             <div className="flex items-center gap-3 mb-4 text-sm">
               <div className="flex items-center gap-1">
@@ -424,7 +431,7 @@ const ProductDetail = () => {
               <span className="text-2xl font-bold text-blue-600">{formatPrice(price)}</span>
               {hasDiscount && (
                 <>
-                  <span className="text-base font-medium text-orange-500 line-through decoration-2 decoration-orange-400">
+                  <span className="text-base font-medium text-orange-500 line-through decoration-1 decoration-orange-400">
                     {formatPrice(originalPrice)}
                   </span>
                   <span className="text-xs font-bold text-white bg-red-500 px-2 py-1 rounded-full">
@@ -468,11 +475,13 @@ const ProductDetail = () => {
                         key={color}
                         title={color}
                         onClick={() => selectColor(color)}
-                        className={`w-14 h-14 rounded-lg overflow-hidden border-2 shrink-0 transition-all duration-300 hover:scale-105 ${isSelected ? 'border-blue-600 ring-2 ring-blue-100' : 'border-slate-200 hover:border-slate-400'
+                        className={`w-14 h-14 rounded-lg overflow-hidden shrink-0 transition-all duration-300 hover:scale-108 ${isSelected ? 'border-blue-500 ring-2 ring-blue-100' : 'border-slate-200 hover:border-slate-400'
                           }`}
                       >
                         {swatchImg ? (
-                          <img src={swatchImg} alt={color} className="w-full h-full object-cover" />
+                          <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                            <img src={swatchImg} alt={color} className="max-w-full max-h-full object-contain" />
+                          </div>
                         ) : (
                           <div className="w-full h-full bg-slate-50 flex items-center justify-center text-[10px] font-medium text-slate-600 px-1 text-center leading-tight">
                             {color}
@@ -632,7 +641,7 @@ const ProductDetail = () => {
         {related.length > 0 && (
           <div className="mt-4">
             <h2 className="text-xl font-bold text-slate-900 mb-5">You May Also Like</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {related.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}

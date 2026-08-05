@@ -20,8 +20,8 @@ const Home = () => {
       <Navbar />
       <Hero />
       <Features />
-      <Categories />
       <FlashSale />
+      <Categories />
       <FeaturedProducts />
       <PromoBanners />
       <BestSellers />

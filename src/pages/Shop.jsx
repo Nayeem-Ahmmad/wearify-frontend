@@ -118,9 +118,9 @@ const Shop = () => {
           )}
 
           <div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {loading ? (
-                <ProductGridSkeleton count={9} />
+                <ProductGridSkeleton count={12} />
               ) : error ? (
                 <div className="col-span-full text-center py-10">
                   <p className="text-sm text-slate-500 mb-3">Something went wrong loading products.</p>

@@ -40,37 +40,22 @@ const Footer = () => {
             <div className="h-px w-full bg-gradient-to-r from-transparent via-blue-600/40 to-transparent" />
 
             <div className="max-w-7xl mx-auto px-4 py-14">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-10">
                     <div>
                         <Logo dark />
                         <p className="text-sm mt-4 leading-relaxed">
                             Your one-stop destination for fashion, shoes, accessories and everything you need to wear your style.
                         </p>
 
-                        <div className="mt-6 space-y-3 text-sm">
-                            <a href="mailto:wearify.sells@gmail.com" className="flex items-center gap-2.5 hover:text-white transition-colors duration-300">
-                                <FiMail size={15} className="text-blue-400" />
-                                wearify.sells@gmail.com
-                            </a>
-                            <a href="tel:+8801581270371" className="flex items-center gap-2.5 hover:text-white transition-colors duration-300">
-                                <FiPhone size={15} className="text-blue-400" />
-                                +880 1581-270371
-                            </a>
-                            <div className="flex items-center gap-2.5">
-                                <FiMapPin size={15} className="text-blue-400 shrink-0" />
-                                Gulshan, Dhaka, Bangladesh
-                            </div>
-                        </div>
-
                         <div className="flex gap-3 mt-6">
                             <a href="#" className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-gradient-to-r hover:from-blue-600 hover:to-white-600 hover:scale-110 transition-all duration-300">
                                 <FiFacebook size={15} />
                             </a>
                             <a href="#" className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-gradient-to-r hover:from-blue-600 hover:to-white-600 hover:scale-110 transition-all duration-300">
-                                <FiInstagram size={15} />
+                                <FiTwitter size={15} />
                             </a>
                             <a href="#" className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-gradient-to-r hover:from-blue-600 hover:to-white-600 hover:scale-110 transition-all duration-300">
-                                <FiTwitter size={15} />
+                                <FiInstagram size={15} />
                             </a>
                         </div>
                     </div>
@@ -98,23 +83,30 @@ const Footer = () => {
                             </ul>
                         </div>
                     ))}
+
+                    <div>
+                        <p className="font-semibold text-white mb-5 text-sm tracking-wide">Contact</p>
+                        <div className="space-y-3 text-sm">
+                            <a href="mailto:wearify.sells@gmail.com" className="flex items-center gap-2.5 hover:text-white transition-colors duration-300">
+                                <FiMail size={15} className="text-blue-400" />
+                                wearify.sells@gmail.com
+                            </a>
+                            <a href="tel:+8801581270371" className="flex items-center gap-2.5 hover:text-white transition-colors duration-300">
+                                <FiPhone size={15} className="text-blue-400" />
+                                +880 1581-270371
+                            </a>
+                            <div className="flex items-center gap-2.5">
+                                <FiMapPin size={15} className="text-blue-400 shrink-0" />
+                                Gulshan, Dhaka, Bangladesh
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div className="border-t border-white/5">
-                <div className="max-w-7xl mx-auto px-4 py-5 flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
+                <div className="max-w-7xl mx-auto px-4 py-5 flex items-center justify-center text-xs">
                     <p>© 2026 Wearify. All rights reserved.</p>
-                    <div className="flex gap-2 items-center">
-                        <span className="mr-1">We Accept:</span>
-                        {['VISA', 'Mastercard', 'bKash', 'Nagad'].map((p) => (
-                            <span
-                                key={p}
-                                className="px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 hover:text-white transition-all duration-300"
-                            >
-                                {p}
-                            </span>
-                        ))}
-                    </div>
                 </div>
             </div>
         </footer>
