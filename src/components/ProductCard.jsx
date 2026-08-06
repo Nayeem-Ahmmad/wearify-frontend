@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FiHeart, FiShoppingCart } from 'react-icons/fi'
+import { FaStar } from 'react-icons/fa'
 import { getProductImage, getProductPrice, formatPrice } from '../utils/productHelpers'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
@@ -81,7 +82,7 @@ const ProductCard = ({ product, dark = false, badge }) => {
         />
       </button>
 
-      <div className="aspect-square overflow-hidden bg-white flex items-center justify-center p-1">
+      <div className={`aspect-square overflow-hidden flex items-center justify-center p-1 ${dark ? 'bg-black' : 'bg-white'}`}>
         <img
           src={image}
           alt={product.name}
@@ -100,7 +101,7 @@ const ProductCard = ({ product, dark = false, badge }) => {
           </span>
           {hasDiscount && (
             <>
-              <span className={`text-xs font-medium line-through decoration-1 decoration-orange-400 text-orange-500`}>
+              <span className={`text-xs font-medium line-through decoration-2 decoration-orange-400 text-orange-500`}>
                 {formatPrice(originalPrice)}
               </span>
               <span className="text-[9px] font-bold text-white bg-red-500 px-1 py-0.5 rounded-full">
@@ -113,7 +114,7 @@ const ProductCard = ({ product, dark = false, badge }) => {
         <button
           type="button"
           onClick={handleAddToCart}
-          className={`mt-2 w-full flex items-center justify-center gap-1 text-[11px] font-bold py-1.5 rounded-full transition-all duration-300 ${added ? 'bg-green-500 text-white' : 'bg-orange-600 text-white hover:bg-green-700'}`}
+          className={`mt-2 w-full flex items-center justify-center gap-1 text-[11px] font-medium py-1.5 rounded-full transition-all duration-300 ${added ? 'bg-green-500 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
         >
           <FiShoppingCart size={12} />
           {added ? 'Added!' : 'Add to Cart'}
