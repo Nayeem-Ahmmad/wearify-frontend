@@ -125,7 +125,7 @@ const FlashSale = () => {
             style={{ animationDuration: `${duration}s` }}
           >
             {marqueeProducts.map((p, i) => (
-              <div key={`${p.id}-${i}`} className="w-32 md:w-40 shrink-0">
+              <div key={`${p.id}-${i}`} className="w-44 md:w-52 shrink-0">
                 <ProductCard product={p} dark />
               </div>
             ))}

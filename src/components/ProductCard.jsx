@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FiHeart, FiShoppingCart } from 'react-icons/fi'
-import { FaStar } from 'react-icons/fa'
+import { FaStar, FaRegStar } from 'react-icons/fa'
 import { getProductImage, getProductPrice, formatPrice } from '../utils/productHelpers'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
@@ -108,6 +108,22 @@ const ProductCard = ({ product, dark = false, badge }) => {
                 -{discountPercent}%
               </span>
             </>
+          )}
+          {product.review_count > 0 && (
+            <span className="flex items-center gap-1 ml-auto shrink-0">
+              <span className="flex items-center gap-[1px]">
+                {[1, 2, 3, 4, 5].map((i) =>
+                  i <= Math.round(product.average_rating) ? (
+                    <FaStar key={i} size={9} className="text-yellow-500" />
+                  ) : (
+                    <FaRegStar key={i} size={9} className={dark ? 'text-slate-600' : 'text-slate-300'} />
+                  )
+                )}
+              </span>
+              <span className={`text-[10px] font-medium ${dark ? 'text-slate-400' : 'text-slate-400'}`}>
+                ({product.review_count})
+              </span>
+            </span>
           )}
         </div>
 
