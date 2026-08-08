@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiPackage, FiChevronRight, FiXCircle, FiClock, FiShoppingBag, FiDownload } from 'react-icons/fi'
+import { FiPackage, FiChevronRight, FiXCircle, FiClock, FiShoppingBag, FiDownload, FiRotateCcw } from 'react-icons/fi'
 import TopBar from '../components/TopBar'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import api from '../api/axios'
-import { downloadInvoice } from '../api/orders'
+import { downloadInvoice, requestReturn } from '../api/orders'
 import { formatPrice, getProductImage } from '../utils/productHelpers'
 import { useToast } from '../components/Toast'
 
@@ -23,6 +23,12 @@ const STATUS_META = {
     refunded: { badge: 'bg-red-50 text-red-700 border-red-200', bar: 'from-red-500 to-red-600', dot: 'bg-red-500' },
 }
 
+const RETURN_STATUS_META = {
+    pending: 'bg-amber-50 text-amber-700 border-amber-200',
+    approved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    rejected: 'bg-red-50 text-red-700 border-red-200',
+}
+
 const formatStatus = (status) => status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 
 const MyOrders = () => {
@@ -31,6 +37,9 @@ const MyOrders = () => {
     const [loading, setLoading] = useState(true)
     const [cancellingId, setCancellingId] = useState(null)
     const [downloadingId, setDownloadingId] = useState(null)
+    const [returnOrder, setReturnOrder] = useState(null)
+    const [returnReason, setReturnReason] = useState('')
+    const [submittingReturn, setSubmittingReturn] = useState(false)
 
     const handleDownloadInvoice = async (order) => {
         setDownloadingId(order.id)
@@ -65,6 +74,22 @@ const MyOrders = () => {
             showToast(err.response?.data?.error || 'Could not cancel this order')
         } finally {
             setCancellingId(null)
+        }
+    }
+
+    const handleSubmitReturn = async () => {
+        if (!returnOrder || !returnReason.trim()) return
+        setSubmittingReturn(true)
+        try {
+            await requestReturn(returnOrder.id, returnReason.trim())
+            showToast('Return request submitted')
+            setReturnOrder(null)
+            setReturnReason('')
+            loadOrders()
+        } catch (err) {
+            showToast(err.response?.data?.error || 'Could not submit return request')
+        } finally {
+            setSubmittingReturn(false)
         }
     }
 
@@ -126,6 +151,7 @@ const MyOrders = () => {
                         <AnimatePresence>
                             {orders.map((order, idx) => {
                                 const canCancel = !['delivered', 'shipped', 'cancelled', 'returned', 'refunded'].includes(order.status)
+                                const canRequestReturn = order.status === 'delivered' && !order.return_request
                                 const meta = STATUS_META[order.status] || { badge: 'bg-slate-50 text-slate-600 border-slate-200', bar: 'from-slate-400 to-slate-500', dot: 'bg-slate-400' }
                                 const previewImages = order.items.slice(0, 4)
 
@@ -155,6 +181,13 @@ const MyOrders = () => {
                                                 </span>
                                             </div>
 
+                                            {order.return_request && (
+                                                <div className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border mb-4 w-fit ${RETURN_STATUS_META[order.return_request.status]}`}>
+                                                    <FiRotateCcw size={12} />
+                                                    Return {formatStatus(order.return_request.status)}
+                                                </div>
+                                            )}
+
                                             <div className="flex items-center gap-3 mb-4">
                                                 <div className="flex -space-x-3">
                                                     {previewImages.map((item, i) => (
@@ -181,11 +214,11 @@ const MyOrders = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                                            <div className="flex items-center justify-between pt-4 border-t border-slate-100 flex-wrap gap-3">
                                                 <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                                                     {formatPrice(order.total_amount)}
                                                 </span>
-                                                <div className="flex items-center gap-4">
+                                                <div className="flex items-center gap-4 flex-wrap">
                                                     {canCancel && (
                                                         <button
                                                             onClick={() => handleCancel(order.id)}
@@ -194,6 +227,14 @@ const MyOrders = () => {
                                                         >
                                                             <FiXCircle size={13} />
                                                             {cancellingId === order.id ? 'Cancelling...' : 'Cancel Order'}
+                                                        </button>
+                                                    )}
+                                                    {canRequestReturn && (
+                                                        <button
+                                                            onClick={() => setReturnOrder(order)}
+                                                            className="flex items-center gap-1 text-xs text-slate-500 hover:text-orange-600 transition-colors duration-300"
+                                                        >
+                                                            <FiRotateCcw size={13} /> Request Return
                                                         </button>
                                                     )}
                                                     <button
@@ -224,6 +265,46 @@ const MyOrders = () => {
             </section >
 
             <Footer />
+
+            {returnOrder && (
+                <div
+                    className="fixed inset-0 z-[200] bg-black/40 flex items-center justify-center p-4 animate-fade-in"
+                    onClick={() => { setReturnOrder(null); setReturnReason('') }}
+                >
+                    <div
+                        className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="w-14 h-14 mx-auto rounded-full bg-orange-50 flex items-center justify-center mb-4">
+                            <FiRotateCcw className="text-orange-500" size={22} />
+                        </div>
+                        <h3 className="font-semibold text-slate-900 text-center mb-1">Request Return</h3>
+                        <p className="text-sm text-slate-500 text-center mb-4">
+                            Order <span className="font-medium text-slate-700">{returnOrder.order_number}</span>
+                        </p>
+                        <textarea
+                            value={returnReason}
+                            onChange={(e) => setReturnReason(e.target.value)}
+                            placeholder="Tell us why you'd like to return this order..."
+                            rows={4}
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 resize-none mb-4"
+                        />
+                        <button
+                            onClick={handleSubmitReturn}
+                            disabled={submittingReturn || !returnReason.trim()}
+                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-full font-medium hover:shadow-lg hover:shadow-blue-200 transition-all duration-300 disabled:opacity-60"
+                        >
+                            {submittingReturn ? 'Submitting...' : 'Submit Return Request'}
+                        </button>
+                        <button
+                            onClick={() => { setReturnOrder(null); setReturnReason('') }}
+                            className="w-full mt-2 text-sm text-slate-400 hover:text-slate-600 py-2"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
         </div >
     )
 }

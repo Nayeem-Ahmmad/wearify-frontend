@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { FiFilter, FiX, FiChevronDown } from 'react-icons/fi'
@@ -27,11 +27,18 @@ const Shop = () => {
     min_price: '',
     max_price: '',
     search: searchParams.get('search') || '',
-    ordering: '',
+    ordering: searchParams.get('ordering') || '',
     on_sale: '',
   })
 
+  // Tracks which fetch is the most recent one, so that if an older request's
+  // response arrives *after* a newer one (out-of-order network response),
+  // it gets ignored instead of overwriting the correct, newer result.
+  const requestIdRef = useRef(0)
+
   useEffect(() => {
+    const thisRequestId = ++requestIdRef.current
+
     setLoading(true)
     setError(false)
     const params = { page }
@@ -41,19 +48,24 @@ const Shop = () => {
 
     getProducts(params)
       .then((data) => {
+        if (thisRequestId !== requestIdRef.current) return // a newer request has since started — ignore this stale response
         setProducts(data.results || data)
         setCount(data.count || (data.results || data).length)
         setHasNext(Boolean(data.next))
         setHasPrevious(Boolean(data.previous))
       })
       .catch(() => {
+        if (thisRequestId !== requestIdRef.current) return
         setProducts([])
         setCount(0)
         setHasNext(false)
         setHasPrevious(false)
         setError(true)
       })
-      .finally(() => setLoading(false))
+      .finally(() => {
+        if (thisRequestId !== requestIdRef.current) return
+        setLoading(false)
+      })
   }, [filters, page, retryKey])
 
   const handleFilterChange = (newFilters) => {

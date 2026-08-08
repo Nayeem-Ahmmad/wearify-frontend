@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 
+import { FaStar, FaRegStar } from 'react-icons/fa'
 import {
   FiHeart, FiShare2, FiShoppingCart, FiChevronRight, FiCheck, FiZoomIn, FiX,
-  FiTruck, FiRefreshCw, FiShield, FiCreditCard, FiPackage, FiBell, FiCheckCircle,
+  FiTruck, FiRefreshCw, FiShield, FiCreditCard, FiPackage, FiBell, FiCheckCircle, FiMaximize2,
 } from 'react-icons/fi'
 
 import { subscribeStockNotification } from '../api/stockNotifications'
@@ -66,6 +67,7 @@ const ProductDetail = () => {
   const [notifyVariant, setNotifyVariant] = useState(null)
   const [notifyLoading, setNotifyLoading] = useState(false)
   const [subscribedVariantIds, setSubscribedVariantIds] = useState(new Set())
+  const [showSizeGuide, setShowSizeGuide] = useState(false)
   const cartBtnRef = useRef(null)
   const { authenticated } = useAuth()
   const { addItem } = useCart()
@@ -411,13 +413,18 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">{truncateWords(product.name, 10)}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1.5">{truncateWords(product.name, 10)}</h1>
 
-            <div className="flex items-center gap-3 mb-4 text-sm">
-              <div className="flex items-center gap-1">
-                <span className="text-yellow-400">★</span>
-                <span className="font-medium text-slate-700">{avgRating.toFixed(1)}</span>
-              </div>
+            <div className="flex items-center gap-2 mb-2 text-sm">
+              <span className="flex items-center gap-[1px]">
+                {[1, 2, 3, 4, 5].map((i) =>
+                  i <= Math.round(avgRating) ? (
+                    <FaStar key={i} size={12} className="text-yellow-400" />
+                  ) : (
+                    <FaRegStar key={i} size={12} className="text-slate-300" />
+                  )
+                )}
+              </span>
               <span className="text-slate-300">|</span>
               <button
                 onClick={() => setActiveTab('reviews')}
@@ -427,7 +434,7 @@ const ProductDetail = () => {
               </button>
             </div>
 
-            <div className="flex items-center gap-3 mb-4 flex-wrap">
+            <div className="flex items-center gap-3 mb-2 flex-wrap">
               <span className="text-2xl font-bold text-blue-600">{formatPrice(price)}</span>
               {hasDiscount && (
                 <>
@@ -439,27 +446,26 @@ const ProductDetail = () => {
                   </span>
                 </>
               )}
+              {stock !== null && (
+                <span className="flex items-center gap-1.5 text-sm ml-1">
+                  {stock > 0 ? (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-green-500 animate-stock-pulse" />
+                      <span className="text-green-600 font-medium">In Stock</span>
+                      {stock <= 10 && <span className="text-orange-500 text-xs">— Only {stock} left</span>}
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-red-500" />
+                      <span className="text-red-600 font-medium">Out of Stock</span>
+                    </>
+                  )}
+                </span>
+              )}
             </div>
 
-            {stock !== null && (
-              <div className="flex items-center gap-2 mb-5 text-sm">
-                {stock > 0 ? (
-                  <>
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-stock-pulse" />
-                    <span className="text-green-600 font-medium">In Stock</span>
-                    {stock <= 10 && <span className="text-orange-500">— Only {stock} left</span>}
-                  </>
-                ) : (
-                  <>
-                    <span className="w-2 h-2 rounded-full bg-red-500" />
-                    <span className="text-red-600 font-medium">Out of Stock</span>
-                  </>
-                )}
-              </div>
-            )}
-
             {colors.length > 0 && (
-              <div className="mb-6">
+              <div className="mb-4">
                 <p className="text-sm font-semibold text-slate-800 mb-2.5">
                   Color Family
                   {selectedVariant?.color && (
@@ -495,8 +501,8 @@ const ProductDetail = () => {
             )}
 
             {sizes.length > 0 && (
-              <div className="mb-5">
-                <p className="text-sm font-semibold text-slate-800 mb-2.5">Size</p>
+              <div className="mb-3">
+                <p className="text-sm font-semibold text-slate-800 mb-2">Size</p>
                 <div className="flex flex-wrap gap-2">
                   {sizes.map((size) => {
                     const available = isSizeAvailable(size)
@@ -520,8 +526,18 @@ const ProductDetail = () => {
               </div>
             )}
 
-            <div className="mb-6">
-              <p className="text-sm font-semibold text-slate-800 mb-2.5">Quantity</p>
+            {product.size_chart && (
+              <button
+                type="button"
+                onClick={() => setShowSizeGuide(true)}
+                className="flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:underline mb-4 -mt-1"
+              >
+                <FiMaximize2 size={13} /> Size Guide
+              </button>
+            )}
+
+            <div className="mb-4">
+              <p className="text-sm font-semibold text-slate-800 mb-2">Quantity</p>
               <div className="flex items-center border border-slate-200 rounded-lg w-fit">
                 <button
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -718,6 +734,54 @@ const ProductDetail = () => {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {showSizeGuide && product.size_chart && (
+        <div
+          className="fixed inset-0 z-[200] bg-black/40 flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setShowSizeGuide(false)}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+                <FiMaximize2 size={16} className="text-blue-500" /> Size Guide
+              </h3>
+              <button onClick={() => setShowSizeGuide(false)} className="text-slate-400 hover:text-slate-600">
+                <FiX size={18} />
+              </button>
+            </div>
+            <p className="text-xs text-slate-400 mb-4">
+              All measurements in {product.size_chart.unit === 'cm' ? 'centimeters' : 'inches'}
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-slate-500 border-b border-slate-100">
+                    <th className="pb-2 pr-3">Size</th>
+                    <th className="pb-2 pr-3">Chest</th>
+                    <th className="pb-2 pr-3">Waist</th>
+                    <th className="pb-2 pr-3">Hip</th>
+                    <th className="pb-2">Length</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {product.size_chart.rows.map((row) => (
+                    <tr key={row.size} className="border-b border-slate-50 last:border-0">
+                      <td className="py-2 pr-3 font-semibold text-slate-800">{row.size}</td>
+                      <td className="py-2 pr-3 text-slate-600">{row.chest ?? '—'}</td>
+                      <td className="py-2 pr-3 text-slate-600">{row.waist ?? '—'}</td>
+                      <td className="py-2 pr-3 text-slate-600">{row.hip ?? '—'}</td>
+                      <td className="py-2 text-slate-600">{row.length ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

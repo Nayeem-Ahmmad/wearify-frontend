@@ -101,7 +101,7 @@ const ProductCard = ({ product, dark = false, badge }) => {
           </span>
           {hasDiscount && (
             <>
-              <span className={`text-xs font-medium line-through decoration-2 decoration-orange-400 text-orange-500`}>
+              <span className={`text-xs font-medium line-through decoration-1 decoration-orange-6 00 text-orange-500`}>
                 {formatPrice(originalPrice)}
               </span>
               <span className="text-[9px] font-bold text-white bg-red-500 px-1 py-0.5 rounded-full">
@@ -110,18 +110,10 @@ const ProductCard = ({ product, dark = false, badge }) => {
             </>
           )}
           {product.review_count > 0 && (
-            <span className="flex items-center gap-1 ml-auto shrink-0">
-              <span className="flex items-center gap-[1px]">
-                {[1, 2, 3, 4, 5].map((i) =>
-                  i <= Math.round(product.average_rating) ? (
-                    <FaStar key={i} size={9} className="text-yellow-500" />
-                  ) : (
-                    <FaRegStar key={i} size={9} className={dark ? 'text-slate-600' : 'text-slate-300'} />
-                  )
-                )}
-              </span>
-              <span className={`text-[10px] font-medium ${dark ? 'text-slate-400' : 'text-slate-400'}`}>
-                ({product.review_count})
+            <span className="flex items-center gap-0.5 ml-auto shrink-0">
+              <FaStar size={12} className="text-yellow-400" />
+              <span className={`text-[10px] font-medium ${dark ? 'text-slate-300' : 'text-slate-500'}`}>
+                {product.average_rating} ({product.review_count})
               </span>
             </span>
           )}

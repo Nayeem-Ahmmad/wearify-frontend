@@ -4,11 +4,11 @@ import { getCategories, getBrands } from '../api/products'
 
 const ShopFilters = ({ filters, onChange }) => {
   const [categories, setCategories] = useState([])
-  const [brands, setBrands] = useState([])
+  // const [brands, setBrands] = useState([])
 
   useEffect(() => {
     getCategories().then((data) => setCategories(data.results || data)).catch(() => setCategories([]))
-    getBrands().then((data) => setBrands(data.results || data)).catch(() => setBrands([]))
+    // getBrands().then((data) => setBrands(data.results || data)).catch(() => setBrands([]))
   }, [])
 
   const handleChange = (key, value) => {
@@ -45,6 +45,9 @@ const ShopFilters = ({ filters, onChange }) => {
         </div>
       </div>
 
+      {/* Brand filter — temporarily disabled, kept fully working so it can
+          be switched back on later by simply un-commenting this block
+          (and the `brands` state + `getBrands()` call above).
       <div>
         <p className="font-semibold text-slate-900 mb-3 text-sm">Brand</p>
         <div className="space-y-2">
@@ -72,6 +75,7 @@ const ShopFilters = ({ filters, onChange }) => {
           ))}
         </div>
       </div>
+      */}
 
       <div>
         <p className="font-semibold text-slate-900 mb-3 text-sm">Price Range</p>

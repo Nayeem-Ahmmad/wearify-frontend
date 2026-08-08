@@ -30,7 +30,7 @@ const Wishlist = () => {
 
             <section className="max-w-7xl mx-auto px-4 py-10">
                 {loading ? (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                         {[1, 2, 3, 4].map((i) => (
                             <div key={i} className="rounded-2xl overflow-hidden border border-slate-100 animate-pulse">
                                 <div className="aspect-square bg-slate-200" />
@@ -61,7 +61,7 @@ const Wishlist = () => {
                         </Link>
                     </motion.div>
                 ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                         <AnimatePresence>
                             {items.map((item, idx) => (
                                 <motion.div

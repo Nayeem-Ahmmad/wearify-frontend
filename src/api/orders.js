@@ -38,3 +38,8 @@ export const downloadInvoice = async (orderId, orderNumber) => {
   link.remove()
   window.URL.revokeObjectURL(url)
 }
+
+export const requestReturn = async (orderId, reason) => {
+  const response = await api.post('/shop/returns/', { order: orderId, reason })
+  return response.data
+}
