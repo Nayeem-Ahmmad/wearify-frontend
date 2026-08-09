@@ -136,7 +136,11 @@ const Checkout = () => {
       if (paymentMethod === 'cod') {
         await fetchCart()
         showToast('Order placed successfully')
-        navigate(`/order-confirmation?order_id=${order.id}`)
+        const isGuest = !user
+        const redirectUrl = isGuest
+          ? `/order-confirmation?order_id=${order.id}&token=${order.public_token}`
+          : `/order-confirmation?order_id=${order.id}`
+        navigate(redirectUrl)
         return
       }
 

@@ -31,6 +31,7 @@ const statusToStageIndex = (status) => {
 const OrderConfirmation = () => {
   const [searchParams] = useSearchParams()
   const orderId = searchParams.get('order_id')
+  const token = searchParams.get('token')
   const navigate = useNavigate()
 
   const [order, setOrder] = useState(null)
@@ -43,11 +44,14 @@ const OrderConfirmation = () => {
       setLoading(false)
       return
     }
-    api.get(`/shop/orders/${orderId}/`)
+    const url = token
+      ? `/shop/orders/${orderId}/?token=${token}`
+      : `/shop/orders/${orderId}/`
+    api.get(url)
       .then((res) => setOrder(res.data))
       .catch(() => setError('Could not load your order details'))
       .finally(() => setLoading(false))
-  }, [orderId])
+  }, [orderId, token])
 
   const isTerminalNegative = order && ['cancelled', 'returned', 'refunded'].includes(order.status)
   const currentStageIndex = order ? statusToStageIndex(order.status) : -1
