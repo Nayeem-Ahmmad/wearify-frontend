@@ -13,3 +13,9 @@ export const addToWishlist = async (productId) => {
 export const removeFromWishlist = async (wishlistItemId) => {
   await api.delete(`/shop/wishlist/${wishlistItemId}/`)
 }
+
+
+export const getSharedWishlist = async (token) => {
+  const response = await api.get(`/shop/wishlist/shared/${token}/`)
+  return response.data
+}

@@ -16,6 +16,7 @@ import OrderConfirmation from './pages/OrderConfirmation'
 import MyOrders from './pages/MyOrders'
 import PaymentResult from './pages/PaymentResult'
 import Wishlist from './pages/Wishlist'
+import SharedWishlist from './pages/SharedWishlist'
 import CategoriesPage from './pages/Categories'
 import NewArrivalsPage from './pages/NewArrivals'
 import Account from './pages/Account'
@@ -53,6 +54,7 @@ function App() {
                 <Route path="/payment/fail" element={<PaymentResult type="fail" />} />
                 <Route path="/payment/cancel" element={<PaymentResult type="cancel" />} />
                 <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/wishlist/shared/:token" element={<SharedWishlist />} />
                 <Route path="/categories" element={<CategoriesPage />} />
                 <Route path="/new-arrivals" element={<NewArrivalsPage />} />
                 <Route path="/account" element={<Account />} />

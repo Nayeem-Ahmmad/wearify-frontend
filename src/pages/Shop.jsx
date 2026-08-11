@@ -8,10 +8,11 @@ import Footer from '../components/Footer'
 import ProductCard from '../components/ProductCard'
 import ProductGridSkeleton from '../components/ProductGridSkeleton'
 import ShopFilters from '../components/ShopFilters'
-import { getProducts } from '../api/products'
+import { getProducts, getCategories } from '../api/products'
 
 const Shop = () => {
   const [products, setProducts] = useState([])
+  const [categoryName, setCategoryName] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
@@ -73,8 +74,35 @@ const Shop = () => {
     setPage(1)
   }
 
+  useEffect(() => {
+    if (!filters.category) {
+      setCategoryName('')
+      return
+    }
+    getCategories()
+      .then((data) => {
+        const list = data.results || data
+        const match = list.find((c) => c.slug === filters.category)
+        setCategoryName(match ? match.name : '')
+      })
+      .catch(() => setCategoryName(''))
+  }, [filters.category])
+
   return (
     <div className="min-h-screen bg-white">
+
+      <title>
+      {categoryName ? `${categoryName} — Shop | Wearify` : 'Shop All Products | Wearify'}
+    </title>
+      <meta
+        name="description"
+        content={
+          categoryName
+            ? `Explore our ${categoryName} collection at Wearify — quality fashion, fast delivery across Bangladesh.`
+            : 'Browse Wearify\'s full collection of clothing — Cash on Delivery available across Bangladesh.'
+        }
+      />
+
       <TopBar />
       <Navbar />
 

@@ -18,17 +18,26 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      const isAuthEndpoint = error.config?.url?.includes('/token/')
-      if (!isAuthEndpoint) {
+    const status = error.response?.status
+    const originalRequest = error.config
+
+    if (status === 401 && !originalRequest?._retry) {
+      const isAuthEndpoint = originalRequest?.url?.includes('/token/')
+      const hadToken = Boolean(localStorage.getItem('access_token'))
+
+      if (!isAuthEndpoint && hadToken) {
+        // The token we sent was stale/expired. Clear it and retry the same
+        // request once WITHOUT it — most endpoints (browsing products,
+        // categories, etc.) work fine anonymously and shouldn't force a
+        // logged-out visitor into a login redirect just for browsing.
         localStorage.removeItem('access_token')
         localStorage.removeItem('refresh_token')
-        const currentPath = window.location.pathname + window.location.search
-        if (window.location.pathname !== '/login') {
-          window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`
-        }
+        originalRequest._retry = true
+        delete originalRequest.headers.Authorization
+        return api(originalRequest)
       }
     }
+
     return Promise.reject(error)
   }
 )

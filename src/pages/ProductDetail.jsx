@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef} from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 
 import { FaStar, FaRegStar } from 'react-icons/fa'
@@ -69,23 +69,33 @@ const ProductDetail = () => {
   const [subscribedVariantIds, setSubscribedVariantIds] = useState(new Set())
   const [showSizeGuide, setShowSizeGuide] = useState(false)
   const cartBtnRef = useRef(null)
+  const productRequestIdRef = useRef(0)
   const { authenticated } = useAuth()
   const { addItem } = useCart()
   const { isWishlisted, toggleWishlist } = useWishlist()
   const navigate = useNavigate()
 
   useEffect(() => {
+    const thisRequestId = ++productRequestIdRef.current
+
     setLoading(true)
     getProduct(slug)
       .then((data) => {
+        if (thisRequestId !== productRequestIdRef.current) return // a newer request has since started — ignore this stale response
         setProduct(data)
         if (data.variants && data.variants.length > 0) {
           setSelectedVariant(data.variants[0])
         }
         addToRecentlyViewed(data)
       })
-      .catch(() => setProduct(null))
-      .finally(() => setLoading(false))
+      .catch(() => {
+        if (thisRequestId !== productRequestIdRef.current) return
+        setProduct(null)
+      })
+      .finally(() => {
+        if (thisRequestId !== productRequestIdRef.current) return
+        setLoading(false)
+      })
 
     getRelatedProducts(slug)
       .then((data) => setRelated(data))
@@ -319,6 +329,52 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen bg-white pb-4">
+      <title>{`${product.meta_title || product.name} | Wearify`}</title>
+      <meta
+        name="description"
+        content={product.meta_description || truncateWords(product.description, 25)}
+      />
+
+      {/* Open Graph */}
+      <meta property="og:type" content="product" />
+      <meta property="og:title" content={product.meta_title || product.name} />
+      <meta property="og:description" content={product.meta_description || truncateWords(product.description, 25)} />
+      <meta property="og:image" content={images[0]} />
+      <meta property="og:url" content={window.location.href} />
+
+      {/* Canonical URL */}
+      <link rel="canonical" href={`${window.location.origin}/products/${product.slug}`} />
+
+      {/* JSON-LD */}
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org/",
+          "@type": "Product",
+          "name": product.name,
+          "image": images,
+          "description": product.description,
+          "brand": product.brand ? { "@type": "Brand", "name": product.brand.name } : undefined,
+          "offers": {
+            "@type": "Offer",
+            "url": `${window.location.origin}/products/${product.slug}`,
+            "priceCurrency": "BDT",
+            "price": price,
+            "availability": inStock
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock"
+          },
+          ...(avgRating > 0 && {
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": avgRating.toFixed(1),
+              "reviewCount": reviewCount
+            }
+          })
+        })}
+      </script>
+
+
+
       <TopBar />
       <Navbar />
 
