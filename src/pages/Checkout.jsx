@@ -13,7 +13,6 @@ import { getAddresses, createAddress } from '../api/addresses'
 import { createOrder, initiatePayment } from '../api/orders'
 import { formatPrice } from '../utils/productHelpers'
 import { useAuth } from '../context/AuthContext'
-import { applyCoupon } from '../api/orders'
 
 const STEPS = [
   { label: 'Cart', icon: FiShoppingBag },
@@ -121,16 +120,11 @@ const Checkout = () => {
     setLoading(true)
     try {
       const address = await resolveAddress()
-      const order = await createOrder(address.id, buyNowItemIds, deliveryLocation)
+      const order = await createOrder(address.id, buyNowItemIds, deliveryLocation, couponCode.trim())
       setLastOrderId(order.id)
 
       if (couponCode.trim()) {
-        try {
-          const result = await applyCoupon(order.id, couponCode.trim())
-          showToast(result.success || 'Coupon applied')
-        } catch (couponErr) {
-          showToast(`Coupon failed: ${couponErr.response?.data?.error || 'Invalid or expired code'}`)
-        }
+        showToast('Coupon applied')
       }
 
       if (paymentMethod === 'cod') {
