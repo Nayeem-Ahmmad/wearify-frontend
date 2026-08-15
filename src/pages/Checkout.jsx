@@ -191,11 +191,29 @@ const Checkout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <TopBar />
-      <Navbar />
+    <div className="min-h-screen bg-white relative">
+      <div className={`transition-all duration-300 ${loading ? 'blur-sm pointer-events-none select-none' : ''}`}>
+        <TopBar />
+        <Navbar />
+      </div>
 
-      <section className="max-w-7xl mx-auto px-4 py-10 animate-fade-in">
+      {/* Full-page loading overlay — appears above the blurred content while the order is being placed */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/40 backdrop-blur-sm animate-fade-in">
+          <div className="flex flex-col items-center gap-4 bg-white rounded-2xl shadow-2xl ring-1 ring-slate-100 px-10 py-8">
+            <div className="relative w-12 h-12">
+              <span className="absolute inset-0 rounded-full border-4 border-blue-100" />
+              <span className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-semibold text-slate-900">Processing your order</p>
+              <p className="text-xs text-slate-400 mt-0.5">Please don't close this page</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <section className={`max-w-7xl mx-auto px-4 py-10 animate-fade-in transition-all duration-300 ${loading ? 'blur-sm pointer-events-none select-none' : ''}`}>
         <h1 className="text-2xl font-bold text-slate-900 mb-1">Checkout</h1>
         <p className="text-sm text-slate-500 mb-8">Almost there — review and confirm your order</p>
 
@@ -482,7 +500,9 @@ const Checkout = () => {
         </div>
       </section>
 
-      <Footer />
+      <div className={`transition-all duration-300 ${loading ? 'blur-sm pointer-events-none select-none' : ''}`}>
+        <Footer />
+      </div>
     </div>
   )
 }

@@ -1,12 +1,35 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FiHeart, FiShoppingCart } from 'react-icons/fi'
-import { FaStar, FaRegStar } from 'react-icons/fa'
+import { FaStar } from 'react-icons/fa'
 import { getProductImage, getProductPrice, formatPrice } from '../utils/productHelpers'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from './Toast'
+
+// Renders a 5-star row filled proportionally to the actual rating (e.g. 3.5 -> 3.5 stars lit),
+// matching the partial-fill star display used on Daraz product cards.
+const StarRating = ({ rating, size = 11 }) => {
+  const filledPercent = Math.max(0, Math.min(5, Number(rating) || 0)) / 5 * 100
+  return (
+    <span className="relative inline-flex leading-none">
+      <span className="flex gap-[1px] text-slate-200">
+        {[...Array(5)].map((_, i) => (
+          <FaStar key={i} size={size} />
+        ))}
+      </span>
+      <span
+        className="absolute inset-0 flex gap-[1px] text-yellow-400 overflow-hidden"
+        style={{ width: `${filledPercent}%` }}
+      >
+        {[...Array(5)].map((_, i) => (
+          <FaStar key={i} size={size} />
+        ))}
+      </span>
+    </span>
+  )
+}
 
 const ProductCard = ({ product, dark = false, badge }) => {
   const { authenticated } = useAuth()
@@ -71,6 +94,12 @@ const ProductCard = ({ product, dark = false, badge }) => {
         </span>
       )}
 
+      {!badge && hasDiscount && (
+        <span className="absolute top-2 left-2 z-10 bg-red-500 text-white text-[10px] font-bold px-1.5 py-1 rounded-md shadow-sm leading-none">
+          -{discountPercent}%
+        </span>
+      )}
+
       <button
         type="button"
         onClick={handleWishlistToggle}
@@ -100,20 +129,15 @@ const ProductCard = ({ product, dark = false, badge }) => {
             {formatPrice(price)}
           </span>
           {hasDiscount && (
-            <>
-              <span className={`text-xs font-medium line-through decoration-1 decoration-orange-6 00 text-orange-500`}>
-                {formatPrice(originalPrice)}
-              </span>
-              <span className="text-[9px] font-bold text-white bg-red-500 px-1 py-0.5 rounded-full">
-                -{discountPercent}%
-              </span>
-            </>
+            <span className={`text-xs font-medium line-through decoration-1 decoration-orange-600 text-orange-500`}>
+              {formatPrice(originalPrice)}
+            </span>
           )}
           {product.review_count > 0 && (
-            <span className="flex items-center gap-0.5 ml-auto shrink-0">
-              <FaStar size={12} className="text-yellow-400" />
+            <span className="flex items-center gap-1 ml-auto shrink-0">
+              <StarRating rating={product.average_rating} />
               <span className={`text-[10px] font-medium ${dark ? 'text-slate-300' : 'text-slate-500'}`}>
-                {product.average_rating} ({product.review_count})
+                ({product.review_count})
               </span>
             </span>
           )}

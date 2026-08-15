@@ -28,6 +28,14 @@ const statusToStageIndex = (status) => {
   return -1
 }
 
+const paymentMethodLabel = (method) => {
+  if (method === 'cod') return 'Cash on Delivery'
+  if (method === 'card') return 'Card'
+  if (method === 'bkash') return 'bKash'
+  if (method === 'nagad') return 'Nagad'
+  return method
+}
+
 const OrderConfirmation = () => {
   const [searchParams] = useSearchParams()
   const orderId = searchParams.get('order_id')
@@ -194,11 +202,49 @@ const OrderConfirmation = () => {
                   </div>
                 </div>
 
+                {/* Payment method + status */}
+                {order.payment && (
+                  <div className="border-t border-slate-100 mt-4 pt-4 flex items-center justify-between text-sm">
+                    <span className="text-slate-500">
+                      Payment Method:{' '}
+                      <span className="font-medium text-slate-700">
+                        {paymentMethodLabel(order.payment.method)}
+                      </span>
+                    </span>
+
+                    {order.payment.method === 'cod' ? (
+                      <span className="font-medium px-2.5 py-1 rounded-full text-xs bg-amber-50 text-amber-600">
+                        Pay on Delivery
+                      </span>
+                    ) : (
+                      <span
+                        className={`font-medium px-2.5 py-1 rounded-full text-xs ${
+                          order.payment.status === 'paid'
+                            ? 'bg-green-50 text-green-600'
+                            : order.payment.status === 'failed'
+                            ? 'bg-red-50 text-red-600'
+                            : order.payment.status === 'cancelled'
+                            ? 'bg-slate-100 text-slate-500'
+                            : 'bg-amber-50 text-amber-600'
+                        }`}
+                      >
+                        {order.payment.status === 'paid' ? 'Paid ✓' : order.payment.status}
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 {order.shipping_address && (
                   <div className="border-t border-slate-100 mt-4 pt-4 text-sm text-slate-600">
                     <p className="font-medium text-slate-800">{order.shipping_address.full_name} — {order.shipping_address.phone}</p>
                     <p>{order.shipping_address.full_address}</p>
                   </div>
+                )}
+
+                {order.payment?.transaction_id && (
+                  <p className="text-xs text-slate-400 mt-3">
+                    Transaction ID: {order.payment.transaction_id}
+                  </p>
                 )}
               </motion.div>
 
@@ -214,6 +260,20 @@ const OrderConfirmation = () => {
                   </div>
                   <p className="text-sm text-white">
                     Our team will call you shortly at <span className="font-semibold">{order.shipping_address?.phone}</span> to confirm your order.
+                  </p>
+                </motion.div>
+              )}
+
+              {order.status === 'confirmed' && order.payment?.status === 'paid' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.45 }}
+                  className="flex items-center gap-3 rounded-2xl bg-green-50 border border-green-100 p-4 text-left mb-8"
+                >
+                  <FiCheckCircle className="text-green-600 shrink-0" size={20} />
+                  <p className="text-sm text-green-700">
+                    Payment received successfully! Your order is confirmed and being prepared.
                   </p>
                 </motion.div>
               )}

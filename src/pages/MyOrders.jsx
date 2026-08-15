@@ -100,7 +100,7 @@ const MyOrders = () => {
 
             <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-14">
                 <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_15%_20%,_#2563EB_0%,_transparent_45%),radial-gradient(circle_at_85%_80%,_#9333EA_0%,_transparent_45%)]" />
-                <div className="relative max-w-4xl mx-auto px-4">
+                <div className="relative max-w-6xl mx-auto px-4">
                     <motion.div
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -114,11 +114,11 @@ const MyOrders = () => {
                 </div>
             </section>
 
-            <section className="max-w-4xl mx-auto px-4 py-10 -mt-6">
+            <section className="max-w-6xl mx-auto px-4 py-10 -mt-6">
                 {loading ? (
-                    <div className="space-y-4">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="h-32 rounded-3xl border border-slate-100 bg-white shadow-sm overflow-hidden">
+                    <div className="grid md:grid-cols-2 gap-5">
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="h-40 rounded-3xl border border-slate-100 bg-white shadow-sm overflow-hidden">
                                 <div className="h-1.5 bg-slate-100 animate-pulse" />
                                 <div className="p-5 space-y-3">
                                     <div className="h-4 bg-slate-100 rounded w-1/3 animate-pulse" />
@@ -147,7 +147,7 @@ const MyOrders = () => {
                         </a>
                     </motion.div>
                 ) : (
-                    <div className="space-y-5">
+                    <div className="grid md:grid-cols-2 gap-5">
                         <AnimatePresence>
                             {orders.map((order, idx) => {
                                 const canCancel = !['delivered', 'shipped', 'cancelled', 'returned', 'refunded'].includes(order.status)
@@ -162,20 +162,22 @@ const MyOrders = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -10 }}
                                         transition={{ delay: idx * 0.08, type: 'spring', stiffness: 120, damping: 18 }}
-                                        className="rounded-3xl border border-slate-100 bg-white shadow-sm hover:shadow-xl hover:shadow-slate-100 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                                        className="rounded-3xl border border-slate-100 bg-white shadow-[0_2px_12px_-4px_rgba(15,23,42,0.06)] hover:shadow-[0_16px_40px_-12px_rgba(15,23,42,0.15)] hover:-translate-y-1 transition-all duration-300 overflow-hidden"
                                     >
                                         <div className={`h-1.5 bg-gradient-to-r ${meta.bar}`} />
 
                                         <div className="p-5 md:p-6">
-                                            <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+                                            <div className="flex items-start justify-between flex-wrap gap-3 pb-4 mb-4 border-b border-slate-100">
                                                 <div>
-                                                    <p className="font-bold text-slate-900 text-lg">{order.order_number}</p>
-                                                    <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                                                    <p className="font-bold text-slate-900 text-lg leading-tight">{order.order_number}</p>
+                                                    <p className="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
                                                         <FiClock size={11} />
                                                         {new Date(order.created_at).toLocaleDateString('en-BD', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                                        <span className="text-slate-300">•</span>
+                                                        {order.items.length} item{order.items.length > 1 ? 's' : ''}
                                                     </p>
                                                 </div>
-                                                <span className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border ${meta.badge}`}>
+                                                <span className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border shrink-0 ${meta.badge}`}>
                                                     <span className={`w-1.5 h-1.5 rounded-full ${meta.dot} animate-pulse`} />
                                                     {formatStatus(order.status)}
                                                 </span>
@@ -188,69 +190,78 @@ const MyOrders = () => {
                                                 </div>
                                             )}
 
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <div className="flex -space-x-3">
-                                                    {previewImages.map((item, i) => (
-                                                        <div
-                                                            key={item.id}
-                                                            className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white bg-slate-100 shadow-sm"
-                                                            style={{ zIndex: previewImages.length - i }}
-                                                        >
+                                            <div className="flex gap-3 overflow-x-auto pb-1 mb-5 -mx-1 px-1 [&::-webkit-scrollbar]:hidden">
+                                                {previewImages.map((item) => (
+                                                    <div
+                                                        key={item.id}
+                                                        className="flex flex-col gap-1.5 shrink-0 w-[76px]"
+                                                    >
+                                                        <div className="w-[76px] h-[76px] rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-sm">
                                                             <img
-                                                                src={item.variant.product_image || getProductImage({ images: [] })}
-                                                                alt={item.variant.product_name}
+                                                                src={item.variant?.product_image || getProductImage({ images: [] })}
+                                                                alt={item.variant?.product_name || 'Product'}
                                                                 className="w-full h-full object-cover"
                                                             />
                                                         </div>
-                                                    ))}
-                                                    {order.items.length > 4 && (
-                                                        <div className="w-12 h-12 rounded-xl border-2 border-white bg-slate-800 text-white text-xs font-semibold flex items-center justify-center shadow-sm">
+                                                        <p className="text-[10px] text-slate-500 leading-tight line-clamp-2">
+                                                            {item.variant?.product_name || 'Product'}
+                                                        </p>
+                                                    </div>
+                                                ))}
+                                                {order.items.length > 4 && (
+                                                    <div className="flex flex-col gap-1.5 shrink-0 w-[76px]">
+                                                        <div className="w-[76px] h-[76px] rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-slate-500 text-xs font-semibold flex items-center justify-center">
                                                             +{order.items.length - 4}
                                                         </div>
-                                                    )}
-                                                </div>
-                                                <div className="text-sm text-slate-500">
-                                                    {order.items.length} item{order.items.length > 1 ? 's' : ''}
-                                                </div>
+                                                        <p className="text-[10px] text-slate-400 leading-tight">more items</p>
+                                                    </div>
+                                                )}
                                             </div>
 
-                                            <div className="flex items-center justify-between pt-4 border-t border-slate-100 flex-wrap gap-3">
-                                                <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                                    {formatPrice(order.total_amount)}
-                                                </span>
-                                                <div className="flex items-center gap-4 flex-wrap">
+                                            <div className="flex items-center justify-between gap-4 flex-wrap pt-4 border-t border-slate-100">
+                                                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl px-4 py-2.5">
+                                                    <p className="text-[10px] font-semibold text-slate-400 tracking-wide mb-0.5">TOTAL PAID</p>
+                                                    <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                                        {formatPrice(order.total_amount)}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex items-center gap-1.5 flex-wrap">
                                                     {canCancel && (
                                                         <button
                                                             onClick={() => handleCancel(order.id)}
                                                             disabled={cancellingId === order.id}
-                                                            className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 hover:underline disabled:opacity-50 transition-colors duration-300"
+                                                            title="Cancel Order"
+                                                            className="flex items-center gap-1.5 text-xs font-medium text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors duration-300 px-3 py-2 rounded-full"
                                                         >
                                                             <FiXCircle size={13} />
-                                                            {cancellingId === order.id ? 'Cancelling...' : 'Cancel Order'}
+                                                            {cancellingId === order.id ? 'Cancelling...' : 'Cancel'}
                                                         </button>
                                                     )}
                                                     {canRequestReturn && (
                                                         <button
                                                             onClick={() => setReturnOrder(order)}
-                                                            className="flex items-center gap-1 text-xs text-slate-500 hover:text-orange-600 transition-colors duration-300"
+                                                            title="Request Return"
+                                                            className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:bg-orange-50 hover:text-orange-600 transition-colors duration-300 px-3 py-2 rounded-full"
                                                         >
-                                                            <FiRotateCcw size={13} /> Request Return
+                                                            <FiRotateCcw size={13} /> Return
                                                         </button>
                                                     )}
                                                     <button
                                                         onClick={() => handleDownloadInvoice(order)}
                                                         disabled={downloadingId === order.id}
-                                                        className="flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600 disabled:opacity-50 transition-colors duration-300"
+                                                        title="Download Invoice"
+                                                        className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:bg-slate-100 disabled:opacity-50 transition-colors duration-300 px-3 py-2 rounded-full"
                                                     >
                                                         <FiDownload size={13} />
                                                         {downloadingId === order.id ? 'Downloading...' : 'Invoice'}
                                                     </button>
                                                     <a
                                                         href={`/order-confirmation?order_id=${order.id}`}
-                                                        className="group flex items-center gap-1 text-sm text-blue-600 font-semibold"
+                                                        className="group flex items-center gap-1 text-xs font-semibold text-white bg-slate-900 hover:bg-blue-600 px-4 py-2.5 rounded-full transition-all duration-300 shadow-sm"
                                                     >
                                                         View Details
-                                                        <FiChevronRight size={14} className="group-hover:translate-x-1 transition-transform duration-300" />
+                                                        <FiChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform duration-300" />
                                                     </a>
                                                 </div>
                                             </div>

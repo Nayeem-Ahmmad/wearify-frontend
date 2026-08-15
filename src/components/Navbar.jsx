@@ -179,8 +179,10 @@ const Navbar = () => {
                                         className="w-10 h-10 rounded-full object-cover border-2 border-slate-200 hover:border-blue-400 transition-colors duration-300"
                                     />
                                 ) : (
-                                    <div className="w-14 h-14 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-200 transition-colors duration-300">
-                                        <FiUser size={24} />
+                                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center hover:opacity-90 transition-opacity duration-300">
+                                        <span className="text-white font-bold text-lg select-none">
+                                            {(user?.username || 'U').trim().charAt(0).toUpperCase()}
+                                        </span>
                                     </div>
                                 )}
                             </button>

@@ -300,8 +300,10 @@ const Account = () => {
                         {getAvatarUrl() ? (
                             <img src={getAvatarUrl()} alt="Profile" className="w-full h-full object-cover" />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-                                <FiUser size={24} className="text-blue-400" />
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-500">
+                                <span className="text-white font-bold text-2xl md:text-6xl select-none">
+                                    {(profile?.user?.username || 'U').trim().charAt(0).toUpperCase()}
+                                </span>
                             </div>
                         )}
                     </div>

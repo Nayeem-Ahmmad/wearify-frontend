@@ -49,8 +49,8 @@ const Footer = () => {
             <div className="h-px w-full bg-gradient-to-r from-transparent via-blue-600/40 to-transparent" />
 
             <div className="max-w-7xl mx-auto px-4 py-14">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
-                    <div className="sm:col-span-2 lg:col-span-1">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-10 sm:gap-10">
+                    <div className="col-span-2 lg:col-span-1">
                         <Logo dark />
                         <p className="text-sm mt-4 leading-relaxed">
                             Your one-stop destination for fashion, shoes, accessories and everything you need to wear your style.
