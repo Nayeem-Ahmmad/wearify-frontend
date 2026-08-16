@@ -21,6 +21,18 @@ api.interceptors.response.use(
     const status = error.response?.status
     const originalRequest = error.config
 
+    // Site-wide maintenance mode — backend middleware returns 503 with
+    // { maintenance: true, message: "..." } for every non-admin request.
+    // Broadcast it so App.jsx can swap the whole UI for a maintenance page.
+    if (status === 503 && error.response?.data?.maintenance) {
+      window.dispatchEvent(
+        new CustomEvent('maintenance-mode', {
+          detail: { message: error.response.data.message },
+        })
+      )
+      return Promise.reject(error)
+    }
+
     if (status === 401 && !originalRequest?._retry) {
       const isAuthEndpoint = originalRequest?.url?.includes('/token/')
       const hadToken = Boolean(localStorage.getItem('access_token'))
