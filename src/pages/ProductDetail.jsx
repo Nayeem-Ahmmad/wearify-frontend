@@ -1,6 +1,7 @@
+// src/pages/ProductDetail.jsx
+
 import { useEffect, useState, useRef} from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-
 import { FaStar, FaRegStar } from 'react-icons/fa'
 import {
   FiHeart, FiShare2, FiShoppingCart, FiChevronRight, FiCheck, FiZoomIn, FiX,
@@ -18,7 +19,7 @@ import RecentlyViewed, { addToRecentlyViewed } from '../components/RecentlyViewe
 import { useToast } from '../components/Toast'
 import { getProduct, getRelatedProducts } from '../api/products'
 import { getReviews } from '../api/reviews'
-import { getProductImage, getAllProductImages, getProductPrice, formatPrice } from '../utils/productHelpers'
+import { getProductImages, getProductImagesWithColor, formatPrice } from '../utils/productHelpers'
 
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
@@ -74,8 +75,6 @@ const ProductDetail = () => {
   const { addItem } = useCart()
   const { isWishlisted, toggleWishlist } = useWishlist()
   const navigate = useNavigate()
-  const images = getAllProductImages(product)
-
 
   useEffect(() => {
     const thisRequestId = ++productRequestIdRef.current
@@ -83,7 +82,7 @@ const ProductDetail = () => {
     setLoading(true)
     getProduct(slug)
       .then((data) => {
-        if (thisRequestId !== productRequestIdRef.current) return // a newer request has since started — ignore this stale response
+        if (thisRequestId !== productRequestIdRef.current) return
         setProduct(data)
         if (data.variants && data.variants.length > 0) {
           setSelectedVariant(data.variants[0])
@@ -229,8 +228,10 @@ const ProductDetail = () => {
     )
   }
 
+  // ===== IMAGES =====
   const images = getProductImages(product)
   const imagesWithColor = getProductImagesWithColor(product)
+  
   const currentPrice = Number(selectedVariant?.price ?? product.base_price)
   const originalPrice = Number(selectedVariant?.original_price ?? product.base_price)
   const price = currentPrice
@@ -249,9 +250,6 @@ const ProductDetail = () => {
     ? [...new Set(product.variants.map((v) => v.color).filter(Boolean))]
     : []
 
-  // A size counts as available only if the *currently selected color* has a
-  // variant for it with stock — otherwise it's shown greyed out, Daraz-style,
-  // instead of being hidden entirely.
   const isSizeAvailable = (size) => {
     if (!selectedVariant?.color) return true
     return product.variants.some(
@@ -264,8 +262,6 @@ const ProductDetail = () => {
     return found ? found.url : null
   }
 
-  // Clicking a gallery photo selects the color it's tagged with (if any),
-  // keeping the current size when that size still exists for the new color.
   const handleImageClick = (index) => {
     setSelectedImage(index)
     const clickedColor = imagesWithColor[index]?.color
@@ -337,17 +333,14 @@ const ProductDetail = () => {
         content={product.meta_description || truncateWords(product.description, 25)}
       />
 
-      {/* Open Graph */}
       <meta property="og:type" content="product" />
       <meta property="og:title" content={product.meta_title || product.name} />
       <meta property="og:description" content={product.meta_description || truncateWords(product.description, 25)} />
       <meta property="og:image" content={images[0]} />
       <meta property="og:url" content={window.location.href} />
 
-      {/* Canonical URL */}
       <link rel="canonical" href={`${window.location.origin}/products/${product.slug}`} />
 
-      {/* JSON-LD */}
       <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org/",
@@ -374,8 +367,6 @@ const ProductDetail = () => {
           })
         })}
       </script>
-
-
 
       <TopBar />
       <Navbar />
@@ -412,9 +403,13 @@ const ProductDetail = () => {
             >
               <img
                 key={selectedImage}
-                src={images[selectedImage]}
+                src={images[selectedImage] || '/placeholder.jpg'}
                 alt={product.name}
                 className="w-full h-full object-contain scale-110 transition-all duration-300 animate-fade-in"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = '/placeholder.jpg';
+                }}
                 style={
                   isZooming
                     ? { transform: 'scale(1.8)', transformOrigin: `${zoomPos.x}% ${zoomPos.y}%` }
@@ -437,7 +432,15 @@ const ProductDetail = () => {
                     className={`w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 bg-slate-50 transition-all duration-300 ${i === selectedImage ? 'border-blue-600' : 'border-transparent hover:border-slate-300'
                       }`}
                   >
-                    <img src={img} alt="" className="w-full h-full object-contain" />
+                    <img 
+                      src={img || '/placeholder.jpg'} 
+                      alt="" 
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/placeholder.jpg';
+                      }}
+                    />
                   </button>
                 ))}
               </div>
@@ -544,7 +547,15 @@ const ProductDetail = () => {
                       >
                         {swatchImg ? (
                           <div className="w-full h-full flex items-center justify-center bg-slate-50">
-                            <img src={swatchImg} alt={color} className="max-w-full max-h-full object-contain" />
+                            <img 
+                              src={swatchImg} 
+                              alt={color} 
+                              className="max-w-full max-h-full object-contain"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = '/placeholder.jpg';
+                              }}
+                            />
                           </div>
                         ) : (
                           <div className="w-full h-full bg-slate-50 flex items-center justify-center text-[10px] font-medium text-slate-600 px-1 text-center leading-tight">
@@ -748,9 +759,13 @@ const ProductDetail = () => {
             <FiX size={20} />
           </button>
           <img
-            src={images[selectedImage]}
+            src={images[selectedImage] || '/placeholder.jpg'}
             alt={product.name}
             className="w-full h-full object-contain animate-scale-in"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = '/placeholder.jpg';
+            }}
           />
         </div>
       )}
