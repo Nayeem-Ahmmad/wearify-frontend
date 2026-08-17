@@ -18,7 +18,7 @@ import RecentlyViewed, { addToRecentlyViewed } from '../components/RecentlyViewe
 import { useToast } from '../components/Toast'
 import { getProduct, getRelatedProducts } from '../api/products'
 import { getReviews } from '../api/reviews'
-import { getProductImages, getProductImagesWithColor, formatPrice } from '../utils/productHelpers'
+import { getProductImage, getAllProductImages, getProductPrice, formatPrice } from '../utils/productHelpers'
 
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
@@ -74,6 +74,8 @@ const ProductDetail = () => {
   const { addItem } = useCart()
   const { isWishlisted, toggleWishlist } = useWishlist()
   const navigate = useNavigate()
+  const images = getAllProductImages(product)
+
 
   useEffect(() => {
     const thisRequestId = ++productRequestIdRef.current

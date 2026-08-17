@@ -73,6 +73,7 @@ const ProductCard = ({ product, dark = false, badge }) => {
     }
   }
 
+  // 👇 এই লাইনটি পরিবর্তন করুন (getProductImage ফাংশন ইতিমধ্যে handle করে)
   const image = getProductImage(product)
   const price = getProductPrice(product)
   const variant = product.variants?.[0]
@@ -116,6 +117,10 @@ const ProductCard = ({ product, dark = false, badge }) => {
           src={image}
           alt={product.name}
           className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-500"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = '/placeholder.jpg';
+          }}
         />
       </div>
 
