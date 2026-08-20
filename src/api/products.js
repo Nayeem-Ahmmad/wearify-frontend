@@ -34,3 +34,5 @@ export const getActiveFlashSale = async () => {
   const response = await api.get('/shop/flash-sale/active/')
   return response.data
 }
+
+export const getBanners = () => api.get('/shop/banners/').then(res => res.data)

@@ -55,20 +55,20 @@ const FlashSale = () => {
   const duration = Math.max(products.length * 4, 12)
 
   return (
-    <section className="max-w-7xl mx-auto px-4 py-10">
-      <div className="relative rounded-3xl bg-gradient-to-br from-slate-950 via-[#0c1030] to-slate-950 text-white p-6 md:p-10 overflow-hidden">
+    <section className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8 md:py-10">
+      <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-[#0c1030] to-slate-950 text-white p-3.5 sm:p-6 md:p-10 overflow-hidden">
 
         {/* Ambient glow accents */}
         <div className="pointer-events-none absolute -top-20 -left-20 w-72 h-72 bg-rose-600/20 blur-[100px] rounded-full" />
         <div className="pointer-events-none absolute -bottom-24 right-0 w-72 h-72 bg-blue-600/10 blur-[100px] rounded-full" />
 
-        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
+        <div className="relative flex flex-row items-center justify-between gap-3 sm:gap-6 mb-5 sm:mb-8">
 
-          <div className="flex items-center gap-4 md:gap-6">
+          <div className="flex items-center gap-2.5 sm:gap-4 md:gap-6 min-w-0">
             {/* Neon lightning bolt */}
             <svg
               viewBox="0 0 100 200"
-              className="w-10 h-20 md:w-14 md:h-28 shrink-0"
+              className="w-6 h-12 sm:w-10 sm:h-20 md:w-14 md:h-28 shrink-0"
               style={{ filter: 'drop-shadow(0 0 6px #f43f5e) drop-shadow(0 0 16px #ec4899)' }}
             >
               <polygon
@@ -80,41 +80,41 @@ const FlashSale = () => {
               />
             </svg>
 
-            <div>
-              <span className="inline-flex items-center gap-1.5 text-[11px] md:text-xs font-bold text-rose-400 tracking-[0.2em] uppercase mb-1">
-                <FiZap size={12} /> Limited Time Offer
+            <div className="min-w-0">
+              <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] md:text-xs font-bold text-rose-400 tracking-[0.2em] uppercase mb-1">
+                <FiZap size={12} className="shrink-0" /> Limited Time Offer
               </span>
-              <h2 className="text-3xl md:text-5xl font-black italic tracking-tight leading-none">
+              <h2 className="text-lg sm:text-3xl md:text-5xl font-black italic tracking-tight leading-none whitespace-nowrap">
                 FLASH <span className="text-rose-500">SALE</span>
               </h2>
-              <p className="text-slate-400 text-sm mt-2">Grab your favorites before it's gone!</p>
+              <p className="hidden sm:block text-slate-400 text-sm mt-2">Grab your favorites before it's gone!</p>
 
               <a
                 href="/deals"
-                className="inline-flex items-center gap-2 border border-white/25 text-white px-5 py-2 rounded-full text-xs md:text-sm font-semibold mt-4 hover:bg-white/10 transition-all duration-300"
+                className="inline-flex items-center gap-1 sm:gap-2 border border-white/25 text-white px-3 py-1 sm:px-5 sm:py-2 rounded-full text-[10px] sm:text-xs md:text-sm font-semibold mt-1.5 sm:mt-4 hover:bg-white/10 transition-all duration-300 whitespace-nowrap"
               >
-                Shop Now <FiChevronRight size={14} />
+                Shop Now <FiChevronRight size={12} className="shrink-0" />
               </a>
             </div>
           </div>
 
-          <div className="md:text-right">
-            <p className="text-xs font-bold text-slate-300 tracking-widest uppercase mb-2">Sale Ends In</p>
-            <div className="flex gap-2 md:justify-end">
+          <div className="shrink-0 text-right">
+            <p className="hidden sm:block text-xs font-bold text-slate-300 tracking-widest uppercase mb-2">Sale Ends In</p>
+            <div className="flex gap-1 sm:gap-2 justify-end">
               {units.map((u) => (
                 <div
                   key={u.label}
-                  className="bg-slate-900/80 border border-blue-500/30 rounded-xl px-3 md:px-4 py-2 text-center min-w-[56px] md:min-w-[64px] shadow-[0_0_16px_rgba(59,130,246,0.15)]"
+                  className="bg-slate-900/80 border border-blue-500/30 rounded-md sm:rounded-xl px-1.5 sm:px-3 md:px-4 py-1 sm:py-2 text-center min-w-[34px] sm:min-w-[56px] md:min-w-[64px] shadow-[0_0_16px_rgba(59,130,246,0.15)]"
                 >
-                  <div className="font-extrabold text-xl md:text-2xl leading-none text-white">
+                  <div className="font-extrabold text-sm sm:text-xl md:text-2xl leading-none text-white">
                     {String(u.value).padStart(2, '0')}
                   </div>
-                  <div className="text-[9px] md:text-[10px] text-blue-400 uppercase tracking-wide mt-1">{u.label}</div>
+                  <div className="text-[7px] sm:text-[9px] md:text-[10px] text-blue-400 uppercase tracking-wide mt-0.5 sm:mt-1">{u.label}</div>
                 </div>
               ))}
             </div>
-            <p className="flex items-center gap-1.5 text-xs text-blue-400 mt-3 md:justify-end">
-              <FiZap size={12} /> Hurry up! Limited stock available.
+            <p className="hidden sm:flex items-center gap-1.5 text-xs text-blue-400 mt-3 justify-end">
+              <FiZap size={12} className="shrink-0" /> Hurry up! Limited stock available.
             </p>
           </div>
         </div>
