@@ -127,30 +127,95 @@ const OrderConfirmation = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="rounded-3xl bg-white shadow-xl shadow-slate-200/60 border border-slate-100 p-6 mb-6"
+                  className="rounded-3xl bg-white shadow-xl shadow-slate-200/60 border border-slate-100 p-5 sm:p-7 mb-6 text-left"
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center justify-between mb-4 sm:mb-6">
+                    <p className="text-[11px] sm:text-xs font-semibold tracking-widest text-slate-400 uppercase">Order Progress</p>
+                    <span className="text-[11px] sm:text-xs font-medium text-slate-400">
+                      Step {Math.max(currentStageIndex + 1, 1)} of {STAGES.length}
+                    </span>
+                  </div>
+
+                  <div className="relative h-[380px] sm:h-[440px]">
+                    <svg
+                      className="absolute inset-0 w-full h-full"
+                      viewBox={`0 0 100 ${STAGES.length * 100}`}
+                      preserveAspectRatio="none"
+                      fill="none"
+                    >
+                      <defs>
+                        <linearGradient id="snakeGradientConfirm" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#10B981" />
+                          <stop offset="100%" stopColor="#059669" />
+                        </linearGradient>
+                      </defs>
+                      {STAGES.slice(0, -1).map((_, idx) => {
+                        const x1 = idx % 2 === 0 ? 18 : 82
+                        const x2 = (idx + 1) % 2 === 0 ? 18 : 82
+                        const y1 = idx * 100 + 50
+                        const y2 = (idx + 1) * 100 + 50
+                        const midY = (y1 + y2) / 2
+                        const isDone = idx < currentStageIndex
+                        return (
+                          <path
+                            key={idx}
+                            d={`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`}
+                            stroke={isDone ? 'url(#snakeGradientConfirm)' : '#fca5a5'}
+                            strokeWidth={isDone ? '3' : '2'}
+                            strokeDasharray={isDone ? '0' : '1.5 4'}
+                            strokeLinecap="round"
+                            className="transition-all duration-700"
+                          />
+                        )
+                      })}
+                    </svg>
+
                     {STAGES.map((stage, idx) => {
-                      const reached = idx <= currentStageIndex
+                      const isOrderDelivered = currentStageIndex === STAGES.length - 1
+                      const isCompleted = idx < currentStageIndex || (isOrderDelivered && idx === currentStageIndex)
+                      const isCurrent = idx === currentStageIndex && !isOrderDelivered
+                      const isReached = idx <= currentStageIndex
                       const Icon = stage.icon
+                      const isLeft = idx % 2 === 0
+                      const topPercent = ((idx * 100 + 50) / (STAGES.length * 100)) * 100
                       return (
-                        <div key={stage.key} className="flex items-center flex-1 last:flex-none">
-                          <div className="flex flex-col items-center shrink-0">
-                            <div
-                              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${reached
-                                ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-md shadow-blue-200'
-                                : 'bg-slate-100 text-slate-400'
-                                }`}
-                            >
-                              <Icon size={15} />
-                            </div>
-                            <span className={`mt-1.5 text-[10px] text-center leading-tight ${reached ? 'text-slate-700 font-medium' : 'text-slate-400'}`}>
-                              {stage.label}
-                            </span>
+                        <div
+                          key={stage.key}
+                          className={`absolute flex items-center ${isLeft ? 'left-[5%] sm:left-[8%] flex-row' : 'right-[5%] sm:right-[8%] flex-row-reverse'}`}
+                          style={{ top: `${topPercent}%`, transform: 'translateY(-50%)' }}
+                        >
+                          <div
+                            className={`relative z-10 w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-full flex items-center justify-center ring-[5px] ring-white transition-all duration-300 ${isReached
+                              ? 'bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-200/70'
+                              : 'bg-red-50 text-red-400'
+                              }`}
+                          >
+                            {isCurrent && (
+                              <span className="absolute inset-0 rounded-full bg-emerald-500 opacity-25 animate-ping" />
+                            )}
+                            {isCompleted ? (
+                              <FiCheckCircle size={18} className="relative sm:hidden" />
+                            ) : (
+                              <Icon size={17} className="relative sm:hidden" />
+                            )}
+                            {isCompleted ? (
+                              <FiCheckCircle size={22} className="relative hidden sm:block" />
+                            ) : (
+                              <Icon size={20} className="relative hidden sm:block" />
+                            )}
                           </div>
-                          {idx < STAGES.length - 1 && (
-                            <div className={`flex-1 h-0.5 mx-1 mb-4 transition-colors duration-500 ${idx < currentStageIndex ? 'bg-blue-600' : 'bg-slate-200'}`} />
-                          )}
+
+                          <div className={`z-10 ml-3 sm:ml-4 mr-3 sm:mr-4 max-w-[112px] sm:max-w-[150px] ${isLeft ? 'text-left' : 'text-right'}`}>
+                            <p className={`text-[11px] sm:text-sm font-semibold tracking-wide leading-tight ${isReached ? 'text-green-700' : 'text-red-500'}`}>
+                              {stage.label}
+                            </p>
+                            {isCurrent && (
+                              <span className="inline-flex items-center gap-1.5 mt-1 text-[9px] sm:text-[11px] font-medium text-emerald-600">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                In Progress
+                              </span>
+                            )}
+                          </div>
                         </div>
                       )
                     })}
@@ -282,20 +347,20 @@ const OrderConfirmation = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.55 }}
-                className="flex items-center justify-center gap-3"
+                className="flex items-stretch justify-center gap-3"
               >
                 <a
                   href="/"
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-medium hover:shadow-lg hover:shadow-blue-300 hover:scale-105 transition-all duration-300"
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:shadow-lg hover:shadow-blue-300 transition-all duration-300"
                 >
-                  <FiHome size={16} /> Continue Shopping
+                  <FiHome size={15} /> Continue Shopping
                 </a>
 
                 <a
                   href="/orders"
-                  className="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-6 py-3 rounded-full font-medium hover:border-blue-300 hover:text-blue-600 transition-all duration-300"
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-medium hover:border-blue-300 hover:text-blue-600 transition-all duration-300"
                 >
-                  <FiShoppingBag size={16} /> View My Orders
+                  <FiShoppingBag size={15} /> View My Orders
                 </a>
               </motion.div>
             </>
