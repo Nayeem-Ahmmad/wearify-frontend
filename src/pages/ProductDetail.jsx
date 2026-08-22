@@ -198,8 +198,8 @@ const ProductDetail = () => {
       <div className="min-h-screen bg-white">
         <TopBar />
         <Navbar />
-        <div className="max-w-7xl mx-auto px-4 py-16 grid lg:grid-cols-[420px_1fr_300px] gap-8 animate-pulse">
-          <div className="aspect-[4/5] bg-slate-200 rounded-2xl" />
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-8 sm:py-16 grid grid-cols-1 lg:grid-cols-[420px_1fr_300px] gap-5 sm:gap-8 animate-pulse">
+          <div className="aspect-[4/5] max-w-[260px] sm:max-w-sm mx-auto lg:mx-0 w-full bg-slate-200 rounded-2xl" />
           <div className="space-y-4">
             <div className="h-6 bg-slate-200 rounded w-2/3" />
             <div className="h-4 bg-slate-200 rounded w-1/3" />
@@ -389,13 +389,13 @@ const ProductDetail = () => {
         </div>
       </div>
 
-      <section className="max-w-7xl mx-auto px-4 pb-8">
-        <div className="grid lg:grid-cols-[420px_1fr_300px] gap-8 items-start">
+      <section className="max-w-7xl mx-auto px-3 sm:px-4 pb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr_300px] gap-5 sm:gap-8 items-start">
 
           {/* Column 1 — Image gallery */}
-          <div className="w-full max-w-sm mx-auto lg:mx-0">
+          <div className="w-full max-w-[260px] sm:max-w-sm mx-auto lg:mx-0">
             <div
-              className="relative h-[380px] flex items-center justify-center rounded-2xl overflow-hidden bg-#FFFFFF mb-3 cursor-zoom-in"
+              className="relative h-56 sm:h-72 md:h-80 lg:h-[380px] flex items-center justify-center rounded-2xl overflow-hidden bg-white border border-slate-100 mb-2.5 sm:mb-3 cursor-zoom-in"
               onMouseMove={handleMouseMove}
               onMouseEnter={() => setIsZooming(true)}
               onMouseLeave={() => setIsZooming(false)}
@@ -417,19 +417,20 @@ const ProductDetail = () => {
                 }
               />
               {!isZooming && (
-                <div className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-slate-500">
-                  <FiZoomIn size={14} />
+                <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white/90 flex items-center justify-center text-slate-500">
+                  <FiZoomIn size={12} className="sm:hidden" />
+                  <FiZoomIn size={14} className="hidden sm:block" />
                 </div>
               )}
             </div>
 
             {images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-1">
+              <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1">
                 {images.map((img, i) => (
                   <button
                     key={i}
                     onClick={() => handleImageClick(i)}
-                    className={`w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 bg-slate-50 transition-all duration-300 ${i === selectedImage ? 'border-blue-600' : 'border-transparent hover:border-slate-300'
+                    className={`w-11 h-11 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 shrink-0 bg-slate-50 transition-all duration-300 ${i === selectedImage ? 'border-blue-600' : 'border-transparent hover:border-slate-300'
                       }`}
                   >
                     <img 
@@ -449,40 +450,40 @@ const ProductDetail = () => {
 
           {/* Column 2 — Details & purchase options */}
           <div>
-            <div className="flex items-start justify-between gap-4 mb-1.5">
+            <div className="flex items-start justify-between gap-3 sm:gap-4 mb-1.5">
               {product.brand && (
-                <span className="text-xs font-medium text-blue-600 uppercase tracking-wide">
+                <span className="text-[11px] sm:text-xs font-medium text-blue-600 uppercase tracking-wide">
                   {product.brand.name}
                 </span>
               )}
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <button
                   onClick={handleShare}
-                  className="w-9 h-9 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:border-slate-400 hover:text-slate-700 transition-all duration-300"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:border-slate-400 hover:text-slate-700 transition-all duration-300"
                 >
-                  <FiShare2 size={15} />
+                  <FiShare2 size={14} />
                 </button>
                 <button
                   onClick={handleWishlistToggle}
-                  className="w-9 h-9 rounded-full border border-slate-200 flex items-center justify-center hover:border-red-300 transition-all duration-300"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-slate-200 flex items-center justify-center hover:border-red-300 transition-all duration-300"
                 >
                   <FiHeart
-                    size={15}
+                    size={14}
                     className={`transition-all duration-300 ${isWishlisted(product.id) ? 'fill-red-500 text-red-500 scale-110' : 'text-slate-400'}`}
                   />
                 </button>
               </div>
             </div>
 
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1.5">{truncateWords(product.name, 10)}</h1>
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-slate-900 mb-1.5 leading-snug">{truncateWords(product.name, 10)}</h1>
 
-            <div className="flex items-center gap-2 mb-2 text-sm">
+            <div className="flex items-center gap-2 mb-2 text-xs sm:text-sm">
               <span className="flex items-center gap-[1px]">
                 {[1, 2, 3, 4, 5].map((i) =>
                   i <= Math.round(avgRating) ? (
-                    <FaStar key={i} size={12} className="text-yellow-400" />
+                    <FaStar key={i} size={11} className="text-yellow-400" />
                   ) : (
-                    <FaRegStar key={i} size={12} className="text-slate-300" />
+                    <FaRegStar key={i} size={11} className="text-slate-300" />
                   )
                 )}
               </span>
@@ -495,20 +496,20 @@ const ProductDetail = () => {
               </button>
             </div>
 
-            <div className="flex items-center gap-3 mb-2 flex-wrap">
-              <span className="text-2xl font-bold text-blue-600">{formatPrice(price)}</span>
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
+              <span className="text-xl sm:text-2xl font-bold text-blue-600">{formatPrice(price)}</span>
               {hasDiscount && (
                 <>
-                  <span className="text-base font-medium text-orange-500 line-through decoration-1 decoration-orange-400">
+                  <span className="text-sm sm:text-base font-medium text-orange-500 line-through decoration-1 decoration-orange-400">
                     {formatPrice(originalPrice)}
                   </span>
-                  <span className="text-xs font-bold text-white bg-red-500 px-2 py-1 rounded-full">
+                  <span className="text-[11px] sm:text-xs font-bold text-white bg-red-500 px-2 py-1 rounded-full">
                     -{discountPercent}%
                   </span>
                 </>
               )}
               {stock !== null && (
-                <span className="flex items-center gap-1.5 text-sm ml-1">
+                <span className="flex items-center gap-1.5 text-xs sm:text-sm ml-1">
                   {stock > 0 ? (
                     <>
                       <span className="w-2 h-2 rounded-full bg-green-500 animate-stock-pulse" />
@@ -542,7 +543,7 @@ const ProductDetail = () => {
                         key={color}
                         title={color}
                         onClick={() => selectColor(color)}
-                        className={`w-14 h-14 rounded-lg overflow-hidden shrink-0 transition-all duration-300 hover:scale-108 ${isSelected ? 'border-blue-500 ring-2 ring-blue-100' : 'border-slate-200 hover:border-slate-400'
+                        className={`w-11 h-11 sm:w-14 sm:h-14 rounded-lg overflow-hidden shrink-0 transition-all duration-300 hover:scale-108 ${isSelected ? 'border-blue-500 ring-2 ring-blue-100' : 'border-slate-200 hover:border-slate-400'
                           }`}
                       >
                         {swatchImg ? (
@@ -580,7 +581,7 @@ const ProductDetail = () => {
                       <button
                         key={size}
                         onClick={() => handleSizeClick(size)}
-                        className={`min-w-[44px] h-11 px-3 rounded-lg border text-sm font-medium transition-all duration-300 ${!available
+                        className={`min-w-[38px] h-9 sm:min-w-[44px] sm:h-11 px-2.5 sm:px-3 rounded-lg border text-xs sm:text-sm font-medium transition-all duration-300 ${!available
                           ? 'border-slate-100 text-slate-300 bg-slate-50 hover:border-blue-300 hover:text-blue-400'
                           : isSelected
                             ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200 hover:scale-105'
@@ -610,16 +611,16 @@ const ProductDetail = () => {
               <div className="flex items-center border border-slate-200 rounded-lg w-fit">
                 <button
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-10 h-11 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-90 transition-all duration-150"
+                  className="w-9 h-10 sm:w-10 sm:h-11 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-90 transition-all duration-150"
                 >
                   −
                 </button>
-                <span key={quantity} className="w-10 text-center text-sm font-medium animate-fade-in">
+                <span key={quantity} className="w-9 sm:w-10 text-center text-sm font-medium animate-fade-in">
                   {quantity}
                 </span>
                 <button
                   onClick={() => setQuantity((q) => q + 1)}
-                  className="w-10 h-11 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-90 transition-all duration-150"
+                  className="w-9 h-10 sm:w-10 sm:h-11 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-90 transition-all duration-150"
                 >
                   +
                 </button>
@@ -630,7 +631,7 @@ const ProductDetail = () => {
               <button
                 onClick={handleBuyNow}
                 disabled={!inStock || buyNowLoading}
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
+                className="flex-1 flex items-center justify-center gap-2 py-3 sm:py-3.5 rounded-full text-sm sm:text-base font-semibold bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
               >
                 {buyNowLoading && (
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -641,7 +642,7 @@ const ProductDetail = () => {
               <button
                 onClick={handleAddToCart}
                 disabled={!inStock}
-                className={`relative flex-1 flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold transition-all duration-300 overflow-hidden ${added
+                className={`relative flex-1 flex items-center justify-center gap-2 py-3 sm:py-3.5 rounded-full text-sm sm:text-base font-semibold transition-all duration-300 overflow-hidden ${added
                   ? 'bg-green-500 text-white'
                   : 'bg-orange-500 text-white hover:bg-orange-600 hover:scale-[1.02] active:scale-95'
                   } disabled:opacity-50 disabled:hover:scale-100`}
@@ -660,8 +661,8 @@ const ProductDetail = () => {
 
           {/* Column 3 — Delivery & return sidebar */}
           <aside className="w-full lg:sticky lg:top-24 space-y-4">
-            <div className="border border-slate-100 rounded-2xl p-5">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Delivery Options</p>
+            <div className="border border-slate-100 rounded-2xl p-4 sm:p-5">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2.5 sm:mb-3">Delivery Options</p>
               <div className="divide-y divide-slate-50">
                 {deliveryInfo.map(({ icon: Icon, title, desc }) => (
                   <div key={title} className="flex items-start gap-3 py-2.5 first:pt-0 last:pb-0">
@@ -675,14 +676,14 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            <div className="border border-slate-100 rounded-2xl p-5">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Return & Warranty</p>
+            <div className="border border-slate-100 rounded-2xl p-4 sm:p-5">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2.5 sm:mb-3">Return & Warranty</p>
               <div className="divide-y divide-slate-50">
                 {returnInfo.map(({ icon: Icon, title, desc, comingSoon }) => (
                   <div key={title} className="flex items-start gap-3 py-2.5 first:pt-0 last:pb-0">
                     <Icon size={16} className="text-blue-600 shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-slate-800 flex items-center gap-1.5">
+                      <p className="text-sm font-medium text-slate-800 flex items-center gap-1.5 flex-wrap">
                         {title}
                         {comingSoon && (
                           <span className="text-[9px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full">Soon</span>
@@ -697,13 +698,13 @@ const ProductDetail = () => {
           </aside>
         </div>
 
-        <div className="mt-14 border-b border-slate-100">
-          <div className="flex gap-8">
+        <div className="mt-8 sm:mt-14 border-b border-slate-100">
+          <div className="flex gap-5 sm:gap-8">
             {['description', 'reviews'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`relative pb-3 text-sm font-medium capitalize transition-colors duration-300 ${activeTab === tab ? 'text-blue-600' : 'text-slate-500 hover:text-slate-700'
+                className={`relative pb-3 text-xs sm:text-sm font-medium capitalize transition-colors duration-300 ${activeTab === tab ? 'text-blue-600' : 'text-slate-500 hover:text-slate-700'
                   }`}
               >
                 {tab === 'reviews' ? `Reviews (${reviewCount})` : tab}
@@ -715,7 +716,7 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        <div className="py-8 animate-fade-in" key={activeTab}>
+        <div className="py-6 sm:py-8 animate-fade-in" key={activeTab}>
           {activeTab === 'description' ? (
             <p className="text-sm text-slate-600 leading-relaxed max-w-2xl">{product.description}</p>
           ) : (
@@ -725,8 +726,8 @@ const ProductDetail = () => {
 
         {related.length > 0 && (
           <div className="mt-4">
-            <h2 className="text-xl font-bold text-slate-900 mb-5">You May Also Like</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-5">You May Also Like</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-3">
               {related.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}

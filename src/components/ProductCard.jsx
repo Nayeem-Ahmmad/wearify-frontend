@@ -8,25 +8,24 @@ import { useWishlist } from '../context/WishlistContext'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from './Toast'
 
-// Renders a 5-star row filled proportionally to the actual rating (e.g. 3.5 -> 3.5 stars lit),
+// Renders a 5-star row filled proportionally to the actual rating (e.g. 4.5 -> 4 full + 1 half lit),
 // matching the partial-fill star display used on Daraz product cards.
+// Each star's fill is computed independently so the gaps between stars never skew the proportion.
 const StarRating = ({ rating, size = 11 }) => {
-  const filledPercent = Math.max(0, Math.min(5, Number(rating) || 0)) / 5 * 100
+  const r = Math.max(0, Math.min(5, Number(rating) || 0))
   return (
-    <span className="relative inline-flex leading-none">
-      <span className="flex gap-[1px] text-slate-200">
-        {[...Array(5)].map((_, i) => (
-          <FaStar key={i} size={size} />
-        ))}
-      </span>
-      <span
-        className="absolute inset-0 flex gap-[1px] text-yellow-400 overflow-hidden"
-        style={{ width: `${filledPercent}%` }}
-      >
-        {[...Array(5)].map((_, i) => (
-          <FaStar key={i} size={size} />
-        ))}
-      </span>
+    <span className="inline-flex gap-[1px] leading-none">
+      {[...Array(5)].map((_, i) => {
+        const fill = Math.max(0, Math.min(1, r - i)) * 100
+        return (
+          <span key={i} className="relative inline-block" style={{ width: size, height: size }}>
+            <FaStar size={size} className="absolute inset-0 text-slate-200" />
+            <span className="absolute inset-0 overflow-hidden text-yellow-400" style={{ width: `${fill}%` }}>
+              <FaStar size={size} />
+            </span>
+          </span>
+        )
+      })}
     </span>
   )
 }
@@ -129,19 +128,19 @@ const ProductCard = ({ product, dark = false, badge }) => {
           {product.name}
         </p>
 
-        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-          <span className={`text-sm font-bold ${dark ? 'text-white' : 'text-slate-900'}`}>
+        <div className="flex items-center gap-1 mt-1 flex-nowrap min-w-0">
+          <span className={`text-xs sm:text-sm font-bold shrink-0 truncate max-w-[42%] ${dark ? 'text-white' : 'text-slate-900'}`}>
             {formatPrice(price)}
           </span>
           {hasDiscount && (
-            <span className={`text-xs font-medium line-through decoration-1 decoration-orange-600 text-orange-500`}>
+            <span className="text-[9px] sm:text-[11px] font-medium line-through decoration-1 decoration-orange-600 text-orange-500 shrink-0 truncate max-w-[28%]">
               {formatPrice(originalPrice)}
             </span>
           )}
           {product.review_count > 0 && (
-            <span className="flex items-center gap-1 ml-auto shrink-0">
-              <StarRating rating={product.average_rating} />
-              <span className={`text-[10px] font-medium ${dark ? 'text-slate-300' : 'text-slate-500'}`}>
+            <span className="flex items-center gap-0.5 ml-auto shrink-0">
+              <StarRating rating={product.average_rating} size={9} />
+              <span className={`text-[8px] sm:text-[9px] font-medium shrink-0 ${dark ? 'text-slate-300' : 'text-slate-500'}`}>
                 ({product.review_count})
               </span>
             </span>

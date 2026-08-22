@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { NavLink } from 'react-router-dom'
 import { FiSearch, FiHeart, FiShoppingCart, FiUser, FiMenu, FiChevronDown, FiX, FiLogOut } from 'react-icons/fi'
 import Logo from './Logo'
@@ -240,8 +241,8 @@ const Navbar = () => {
                     </nav>
                 </div>
             </div>
-            {mobileMenuOpen && (
-                <div className="fixed inset-0 z-[60] md:hidden">
+            {mobileMenuOpen && createPortal(
+                <div className="fixed inset-0 z-[100] md:hidden">
                     <div
                         className="absolute inset-0 bg-black/40 animate-fade-in"
                         onClick={() => setMobileMenuOpen(false)}
@@ -336,7 +337,8 @@ const Navbar = () => {
                             )}
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </header>
     )

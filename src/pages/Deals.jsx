@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { FiZap } from 'react-icons/fi'
+import { FiZap, FiChevronLeft, FiChevronRight, FiClock } from 'react-icons/fi'
 import TopBar from '../components/TopBar'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -39,38 +39,48 @@ const DealsPage = () => {
   }, [page, retryKey])
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#F5F5F7]">
       <TopBar />
       <Navbar />
 
-      <section className="relative overflow-hidden bg-gradient-to-br from-red-50 via-orange-50 to-amber-50 py-14">
-        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_15%_20%,_#EF4444_0%,_transparent_45%),radial-gradient(circle_at_85%_80%,_#F97316_0%,_transparent_45%)]" />
-        <div className="relative max-w-7xl mx-auto px-4">
+      {/* ================= HERO ================= */}
+      <section className="relative overflow-hidden bg-gradient-to-r from-[#1C1C1E] via-[#B3270A] to-[#F85606] py-8 sm:py-12 md:py-14">
+        <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_12%_20%,_#FF8A3D_0%,_transparent_42%),radial-gradient(circle_at_88%_85%,_#F85606_0%,_transparent_45%)]" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-5">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-widest text-orange-600 mb-2">
-              <FiZap size={13} className="animate-pulse" /> LIMITED TIME OFFERS
+            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold tracking-widest text-[#FFD3A8] mb-2 uppercase">
+              <FiZap size={13} className="animate-pulse" /> Limited Time Offers
             </span>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2">Today's Deals</h1>
-            <p className="text-slate-500">{count} product{count !== 1 ? 's' : ''} on sale right now</p>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
+              Today's Deals
+            </h1>
+            <p className="flex items-center gap-1.5 text-white/80 text-xs sm:text-sm">
+              <FiClock size={13} />
+              {count} product{count !== 1 ? 's' : ''} on sale right now
+            </p>
           </motion.div>
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-10">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+      {/* ================= PRODUCT GRID ================= */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-5 py-6 sm:py-10">
+        <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 xs:gap-3 sm:gap-4">
           {loading ? (
             <ProductGridSkeleton count={12} />
           ) : error ? (
-            <div className="col-span-full text-center py-16">
-              <p className="text-sm text-slate-500 mb-3">Something went wrong loading deals.</p>
-              <button onClick={() => setRetryKey((k) => k + 1)} className="text-sm font-medium text-blue-600 hover:underline">
+            <div className="col-span-full text-center py-14 sm:py-16 bg-white rounded-2xl border border-[#ECECEE]">
+              <p className="text-sm text-[#6B7280] mb-3">Something went wrong loading deals.</p>
+              <button
+                onClick={() => setRetryKey((k) => k + 1)}
+                className="text-sm font-semibold text-[#F85606] hover:underline"
+              >
                 Try again
               </button>
             </div>
           ) : products.length === 0 ? (
-            <div className="col-span-full text-center py-16">
-              <FiZap className="mx-auto text-slate-300 mb-4" size={40} />
-              <p className="text-slate-500">No active deals right now — check back soon!</p>
+            <div className="col-span-full text-center py-14 sm:py-16 bg-white rounded-2xl border border-[#ECECEE]">
+              <FiZap className="mx-auto text-[#D1D5DB] mb-4" size={40} />
+              <p className="text-[#6B7280] text-sm sm:text-base">No active deals right now — check back soon!</p>
             </div>
           ) : (
             products.map((p, idx) => (
@@ -78,7 +88,7 @@ const DealsPage = () => {
                 key={p.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.04 }}
+                transition={{ delay: Math.min(idx * 0.04, 0.4) }}
               >
                 <ProductCard product={p} />
               </motion.div>
@@ -86,22 +96,27 @@ const DealsPage = () => {
           )}
         </div>
 
-        {(hasNext || hasPrevious) && (
-          <div className="flex items-center justify-center gap-2 mt-10">
+        {/* ================= PAGINATION ================= */}
+        {!loading && !error && (hasNext || hasPrevious) && (
+          <div className="flex items-center justify-center gap-2 sm:gap-3 mt-8 sm:mt-10">
             <button
               onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
               disabled={!hasPrevious}
-              className="px-4 py-2 rounded-full border border-slate-200 text-sm disabled:opacity-40 hover:border-orange-500 transition-all duration-300"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full border border-[#E5E7EB] bg-white text-xs sm:text-sm font-medium text-[#4B5563] disabled:opacity-40 disabled:cursor-not-allowed hover:border-[#F85606] hover:text-[#F85606] transition-all duration-200"
             >
-              Previous
+              <FiChevronLeft size={15} />
+              <span className="hidden xs:inline">Previous</span>
             </button>
-            <span className="text-sm text-slate-500">Page {page}</span>
+            <span className="text-xs sm:text-sm font-semibold text-[#191919] bg-white border border-[#ECECEE] rounded-full px-4 py-2">
+              Page {page}
+            </span>
             <button
               onClick={() => { setPage((p) => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
               disabled={!hasNext}
-              className="px-4 py-2 rounded-full border border-slate-200 text-sm disabled:opacity-40 hover:border-orange-500 transition-all duration-300"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full border border-[#E5E7EB] bg-white text-xs sm:text-sm font-medium text-[#4B5563] disabled:opacity-40 disabled:cursor-not-allowed hover:border-[#F85606] hover:text-[#F85606] transition-all duration-200"
             >
-              Next
+              <span className="hidden xs:inline">Next</span>
+              <FiChevronRight size={15} />
             </button>
           </div>
         )}
