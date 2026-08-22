@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
     FiCheckCircle, FiPackage, FiHome, FiShoppingBag,
-    FiClock, FiTruck, FiXCircle, FiSearch, FiLogIn,
+    FiClock, FiTruck, FiXCircle, FiSearch, FiLogIn, FiLoader,
 } from 'react-icons/fi'
 import TopBar from '../components/TopBar'
 import Navbar from '../components/Navbar'
@@ -208,11 +208,15 @@ const TrackOrder = () => {
                                                 )}
                                                 {isCompleted ? (
                                                     <FiCheckCircle size={18} className="relative sm:hidden" />
+                                                ) : isCurrent ? (
+                                                    <FiLoader size={17} className="relative sm:hidden animate-spin" />
                                                 ) : (
                                                     <Icon size={17} className="relative sm:hidden" />
                                                 )}
                                                 {isCompleted ? (
                                                     <FiCheckCircle size={22} className="relative hidden sm:block" />
+                                                ) : isCurrent ? (
+                                                    <FiLoader size={20} className="relative hidden sm:block animate-spin" />
                                                 ) : (
                                                     <Icon size={20} className="relative hidden sm:block" />
                                                 )}
@@ -222,12 +226,7 @@ const TrackOrder = () => {
                                                 <p className={`text-[11px] sm:text-sm font-semibold tracking-wide leading-tight ${isReached ? 'text-green-700' : 'text-red-500'}`}>
                                                     {stage.label}
                                                 </p>
-                                                {isCurrent && (
-                                                    <span className={`inline-flex items-center gap-1.5 mt-1 text-[9px] sm:text-[11px] font-medium text-emerald-600 ${isLeft ? '' : 'flex-row-reverse'}`}>
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                        In Progress
-                                                    </span>
-                                                )}
+                                        
                                             </div>
                                         </div>
                                     )
