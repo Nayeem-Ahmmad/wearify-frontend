@@ -2,9 +2,8 @@ import { useEffect } from 'react'
 import { useGoogleLogin } from '@react-oauth/google'
 import { FcGoogle } from 'react-icons/fc'
 import { FaFacebook } from 'react-icons/fa'
-import axios from 'axios'
+import api from '../api/axios'
 
-const API_BASE = 'https://wearify-backend-4bqg.onrender.com'
 const FACEBOOK_APP_ID = '1710670040007958'
 
 const loadFacebookSdk = () => {
@@ -36,15 +35,15 @@ const SocialAuthButtons = ({ redirectTo = '/' }) => {
   }, [])
 
   const handleSocialSuccess = (access, refresh) => {
-    localStorage.setItem('access', access)
-    localStorage.setItem('refresh', refresh)
+    localStorage.setItem('access_token', access)
+    localStorage.setItem('refresh_token', refresh)
     window.location.href = redirectTo
   }
 
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        const res = await axios.post(`${API_BASE}/api/auth/google/`, {
+        const res = await api.post('/auth/google/', {
           access_token: tokenResponse.access_token,
         })
         handleSocialSuccess(res.data.access, res.data.refresh)
@@ -61,7 +60,7 @@ const SocialAuthButtons = ({ redirectTo = '/' }) => {
       async (response) => {
         if (response.authResponse) {
           try {
-            const res = await axios.post(`${API_BASE}/api/auth/facebook/`, {
+            const res = await api.post('/auth/facebook/', {
               access_token: response.authResponse.accessToken,
             })
             handleSocialSuccess(res.data.access, res.data.refresh)
