@@ -54,24 +54,29 @@ const SocialAuthButtons = ({ redirectTo = '/' }) => {
     onError: () => console.error('Google login failed'),
   })
 
-  const handleFacebookLogin = async () => {
-    const FB = await loadFacebookSdk()
-    FB.login(
-      async (response) => {
-        if (response.authResponse) {
-          try {
-            const res = await api.post('/auth/facebook/', {
-              access_token: response.authResponse.accessToken,
-            })
-            handleSocialSuccess(res.data.access, res.data.refresh)
-          } catch (err) {
-            console.error('Facebook login failed:', err)
-          }
-        }
-      },
-      { scope: 'email,public_profile' }
-    )
+  const handleFacebookLogin = () => {
+  if (!window.FB) {
+    console.error('Facebook SDK not loaded yet')
+    return
   }
+  window.FB.login(
+    async (response) => {
+      if (response.authResponse) {
+        try {
+          const res = await api.post('/auth/facebook/', {
+            access_token: response.authResponse.accessToken,
+          })
+          handleSocialSuccess(res.data.access, res.data.refresh)
+        } catch (err) {
+          console.error('Facebook login failed:', err)
+        }
+      } else {
+        console.log('Facebook login cancelled or not authorized')
+      }
+    },
+    { scope: 'email,public_profile' }
+  )
+}
 
   return (
     <div className="mt-6">
