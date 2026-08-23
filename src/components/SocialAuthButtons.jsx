@@ -55,27 +55,32 @@ const SocialAuthButtons = ({ redirectTo = '/' }) => {
   })
 
   const handleFacebookLogin = () => {
+  console.log('FB button clicked')
+  console.log('window.FB exists?', !!window.FB)
   if (!window.FB) {
     console.error('Facebook SDK not loaded yet')
     return
   }
+  console.log('calling FB.login...')
   window.FB.login(
-    async (response) => {
+    (response) => {
+      console.log('FB.login callback fired:', response)
       if (response.authResponse) {
-        try {
-          const res = await api.post('/auth/facebook/', {
-            access_token: response.authResponse.accessToken,
+        api.post('/auth/facebook/', {
+          access_token: response.authResponse.accessToken,
+        })
+          .then((res) => {
+            console.log('backend response:', res.data)
+            handleSocialSuccess(res.data.access, res.data.refresh)
           })
-          handleSocialSuccess(res.data.access, res.data.refresh)
-        } catch (err) {
-          console.error('Facebook login failed:', err)
-        }
+          .catch((err) => console.error('Facebook backend call failed:', err))
       } else {
-        console.log('Facebook login cancelled or not authorized')
+        console.log('Facebook login cancelled or not authorized', response)
       }
     },
     { scope: 'email,public_profile' }
   )
+  console.log('FB.login called, waiting for popup/callback')
 }
 
   return (
