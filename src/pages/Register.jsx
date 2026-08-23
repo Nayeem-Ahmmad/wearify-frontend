@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
 import Logo from '../components/Logo'
+import SocialAuthButtons from '../components/SocialAuthButtons'
 import { registerUser } from '../api/auth'
 import { useAuth } from '../context/AuthContext'
 
@@ -146,6 +147,8 @@ const Register = () => {
             {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
+
+        <SocialAuthButtons redirectTo="/" />
 
         <p className="text-center text-sm text-slate-500 mt-6">
           Already have an account?{' '}

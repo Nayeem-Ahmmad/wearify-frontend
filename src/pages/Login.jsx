@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
 import Logo from '../components/Logo'
+import SocialAuthButtons from '../components/SocialAuthButtons'
 import { useAuth } from '../context/AuthContext'
 
 const Login = () => {
@@ -11,6 +12,8 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const redirectTo = searchParams.get('redirect') || '/'
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -22,7 +25,6 @@ const Login = () => {
     setLoading(true)
     try {
       await login(form.username, form.password)
-      const redirectTo = searchParams.get('redirect') || '/'
       window.location.href = redirectTo
     } catch {
       setError('Invalid username or password')
@@ -95,6 +97,8 @@ const Login = () => {
             {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
+
+        <SocialAuthButtons redirectTo={redirectTo} />
 
         <p className="text-center text-sm text-slate-500 mt-6">
           Don't have an account?{' '}
