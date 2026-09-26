@@ -56,7 +56,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true)
   const [selectedVariant, setSelectedVariant] = useState(null)
   const [selectedImage, setSelectedImage] = useState(0)
-  const [quantity, setQuantity] = useState(1)
+  const [sizeQuantities, setSizeQuantities] = useState({})
   const [added, setAdded] = useState(false)
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
   const [isZooming, setIsZooming] = useState(false)
@@ -76,10 +76,43 @@ const ProductDetail = () => {
   const { isWishlisted, toggleWishlist } = useWishlist()
   const navigate = useNavigate()
 
+  const addCurrentSize = () => {
+    if (!selectedVariant) return
+    setSizeQuantities((prev) => ({ ...prev, [selectedVariant.id]: 1 }))
+  }
+
+  const changeQuantity = (delta) => {
+    if (!selectedVariant) return
+    setSizeQuantities((prev) => {
+      const current = prev[selectedVariant.id] || 0
+      const next = current + delta
+      if (next <= 0) {
+        const copy = { ...prev }
+        delete copy[selectedVariant.id]
+        return copy
+      }
+      return { ...prev, [selectedVariant.id]: next }
+    })
+  }
+
+  const removeSizeSelection = (variantId) => {
+    setSizeQuantities((prev) => {
+      const next = { ...prev }
+      delete next[variantId]
+      return next
+    })
+  }
+
+  const selectedSizesTotal = Object.entries(sizeQuantities).reduce((sum, [variantId, qty]) => {
+    const variant = product?.variants?.find((v) => v.id === Number(variantId))
+    return variant ? sum + variant.price * qty : sum
+  }, 0)
+
   useEffect(() => {
     const thisRequestId = ++productRequestIdRef.current
 
     setLoading(true)
+    setSizeQuantities({})
     getProduct(slug)
       .then((data) => {
         if (thisRequestId !== productRequestIdRef.current) return
@@ -129,12 +162,16 @@ const ProductDetail = () => {
       redirectToLogin()
       return
     }
-    if (!selectedVariant) return
+    const entries = Object.entries(sizeQuantities)
+    if (entries.length === 0) return
     try {
-      await addItem(selectedVariant.id, quantity)
+      for (const [variantId, qty] of entries) {
+        await addItem(Number(variantId), qty)
+      }
       setAdded(true)
       setFlyAnim(true)
       showToast('Added to cart successfully')
+      setSizeQuantities({})
       setTimeout(() => setAdded(false), 1500)
       setTimeout(() => setFlyAnim(false), 700)
     } catch {
@@ -147,12 +184,20 @@ const ProductDetail = () => {
       redirectToLogin()
       return
     }
-    if (!selectedVariant) return
+    const entries = Object.entries(sizeQuantities)
+    if (entries.length === 0) return
     setBuyNowLoading(true)
     try {
-      const data = await addItem(selectedVariant.id, quantity)
-      const cartItem = data.items.find((i) => i.variant.id === selectedVariant.id)
-      navigate('/checkout', { state: cartItem ? { buyNowItemIds: [cartItem.id] } : undefined })
+      let data
+      for (const [variantId, qty] of entries) {
+        data = await addItem(Number(variantId), qty)
+      }
+      const variantIds = entries.map(([variantId]) => Number(variantId))
+      const buyNowItemIds = data.items
+        .filter((i) => variantIds.includes(i.variant.id))
+        .map((i) => i.id)
+      setSizeQuantities({})
+      navigate('/checkout', { state: { buyNowItemIds } })
     } catch {
       showToast('Could not process this order')
     } finally {
@@ -606,31 +651,75 @@ const ProductDetail = () => {
               </button>
             )}
 
-            <div className="mb-4">
-              <p className="text-sm font-semibold text-slate-800 mb-2">Quantity</p>
-              <div className="flex items-center border border-slate-200 rounded-lg w-fit">
-                <button
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-9 h-10 sm:w-10 sm:h-11 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-90 transition-all duration-150"
-                >
-                  −
-                </button>
-                <span key={quantity} className="w-9 sm:w-10 text-center text-sm font-medium animate-fade-in">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => setQuantity((q) => q + 1)}
-                  className="w-9 h-10 sm:w-10 sm:h-11 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-90 transition-all duration-150"
-                >
-                  +
-                </button>
+                        <div className="mb-4">
+              <p className="text-sm font-bold text-slate-800 mb-2">Quantity</p>
+              <div className="flex items-center justify-start">
+                {selectedVariant && sizeQuantities[selectedVariant.id] != null ? (
+                  <div className="flex items-center gap-5">
+                    <button
+                      onClick={() => changeQuantity(-1)}
+                      className="w-9 h-9 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-90 transition-all duration-150"
+                    >
+                      −
+                    </button>
+                    <span key={sizeQuantities[selectedVariant.id]} className="text-base font-semibold w-6 text-center animate-fade-in">
+                      {sizeQuantities[selectedVariant.id]}
+                    </span>
+                    <button
+                      onClick={() => changeQuantity(1)}
+                      className="w-9 h-9 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-90 transition-all duration-150"
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={addCurrentSize}
+                    disabled={!selectedVariant || !inStock}
+                    className="w-1/2 py-3 rounded-full bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 active:scale-95 transition-all duration-150 disabled:opacity-50"
+                  >
+                    Add
+                  </button>
+                )}
               </div>
             </div>
+
+            {Object.keys(sizeQuantities).length > 0 && (
+              <div className="mb-4 border border-slate-200 rounded-lg p-3">
+                <p className="text-sm font-semibold text-slate-800 mb-2">Selected Sizes</p>
+                <div className="space-y-2">
+                  {Object.entries(sizeQuantities).map(([variantId, qty]) => {
+                    const variant = product.variants.find((v) => v.id === Number(variantId))
+                    if (!variant) return null
+                    return (
+                      <div key={variantId} className="flex items-center justify-between text-sm">
+                        <span className="text-slate-600">
+                          {variant.size}{variant.color ? ` / ${variant.color}` : ''} × {qty}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-slate-800">{formatPrice(variant.price * qty)}</span>
+                          <button
+                            onClick={() => removeSizeSelection(variantId)}
+                            className="text-slate-400 hover:text-red-500"
+                          >
+                            <FiX size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="flex items-center justify-between text-sm font-semibold text-slate-900 mt-2 pt-2 border-t border-slate-100">
+                  <span>Total</span>
+                  <span>{formatPrice(selectedSizesTotal)}</span>
+                </div>
+              </div>
+            )}
 
             <div ref={cartBtnRef} className="flex items-center gap-3 relative">
               <button
                 onClick={handleBuyNow}
-                disabled={!inStock || buyNowLoading}
+                disabled={!inStock || buyNowLoading || Object.keys(sizeQuantities).length === 0}
                 className="flex-1 flex items-center justify-center gap-2 py-3 sm:py-3.5 rounded-full text-sm sm:text-base font-semibold bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
               >
                 {buyNowLoading && (
@@ -641,7 +730,7 @@ const ProductDetail = () => {
 
               <button
                 onClick={handleAddToCart}
-                disabled={!inStock}
+                disabled={!inStock || Object.keys(sizeQuantities).length === 0}
                 className={`relative flex-1 flex items-center justify-center gap-2 py-3 sm:py-3.5 rounded-full text-sm sm:text-base font-semibold transition-all duration-300 overflow-hidden ${added
                   ? 'bg-green-500 text-white'
                   : 'bg-orange-500 text-white hover:bg-orange-600 hover:scale-[1.02] active:scale-95'
